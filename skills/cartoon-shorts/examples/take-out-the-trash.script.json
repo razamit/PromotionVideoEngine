@@ -1,0 +1,728 @@
+{
+  "title": "It won't stop until the trash is out",
+  "notes": "v2 (2026-11-03): reference pace (about 215 wpm), reference captions, new characters, camera depth, zoomed captures, SFX kit. v3 (2026-11-03): voice lines levelled; bed composed for this episode by ACE-Step 1.5 (local, MIT; output rights caveat in music-and-sfx.md), take 2 of 3, seed 5102. Claims: a swiped reminder comes back at the repeat interval (default 3 min); Done is on the reminder. Captures: sticky_api34 emulator, live 2.13.0+72 release build, 2026-11-03, demo status bar.",
+  "fps": 30,
+  "voice": {
+    "engine": "mlx",
+    "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16",
+    "refAudio": "voice/series_narrator.wav",
+    "lang": "english",
+    "seed": 7,
+    "tempo": 1.05
+  },
+  "gapAfterLine": 0.12,
+  "tailSeconds": 0.4,
+  "autoSfx": false,
+  "music": {
+    "file": "music/bed.wav",
+    "volume": 0.126,
+    "loop": false,
+    "fadeIn": 0,
+    "fadeOut": 0.6,
+    "generate": {
+      "prompt": "sneaky lazy comedic cartoon underscore, plucky pizzicato strings, bassoon and tuba, finger snaps, light brushed drums, mischievous procrastination mood, steady groove, instrumental, no vocals",
+      "seed": 5101,
+      "bpm": 108,
+      "key": "D minor",
+      "takes": 3,
+      "pick": 2
+    }
+  },
+  "lines": [
+    {
+      "vo": "This trash bag has been by the door since *Tuesday.*",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "front",
+            "swell": 1.2
+          },
+          "camera": {
+            "move": "crashOut",
+            "focusX": 0.47,
+            "focusY": 0.42
+          }
+        },
+        {
+          "scene": "youOnCouch",
+          "params": {
+            "mood": "tired",
+            "look": "left"
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "dissolve"
+        }
+      ]
+    },
+    {
+      "vo": "And your phone reminded you. *Once.*",
+      "shots": [
+        {
+          "scene": "oldPhonePing",
+          "camera": {
+            "move": "push"
+          },
+          "sfx": {
+            "file": "sfx/ding.wav",
+            "volume": 0.5,
+            "offset": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "vo": "One polite little ping at eight a.m.",
+      "shots": [
+        {
+          "scene": "clockInsert",
+          "params": {
+            "hour": 8,
+            "minute": 0
+          },
+          "camera": {
+            "move": "crash"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "You swiped it away like a fly.",
+      "shots": [
+        {
+          "scene": "swatAway",
+          "camera": {
+            "move": "panRight"
+          },
+          "sfx": {
+            "file": "sfx/swat.wav",
+            "volume": 0.6,
+            "offset": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "vo": "By Thursday, there are *actual* flies.",
+      "shots": [
+        {
+          "scene": "calendarFlip",
+          "params": {
+            "day": "THU"
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "whipLeft",
+          "sfx": {
+            "file": "sfx/whoosh_a.wav",
+            "volume": 0.45,
+            "offset": -0.1
+          }
+        },
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "low",
+            "swell": 1.4,
+            "flies": 3
+          },
+          "camera": {
+            "move": "crash",
+            "focusX": 0.45,
+            "focusY": 0.5
+          },
+          "sfx": {
+            "file": "sfx/fly_loop.wav",
+            "volume": 0.35,
+            "loop": true
+          }
+        }
+      ]
+    },
+    {
+      "vo": "The bag is now the size of a small dog.",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "high",
+            "swell": 1.8,
+            "flies": 6
+          },
+          "camera": {
+            "move": "pull"
+          },
+          "enter": "dissolve"
+        }
+      ]
+    },
+    {
+      "vo": "It has a smell you can *hear.*",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "low",
+            "swell": 1.8,
+            "flies": 6,
+            "stink": true
+          },
+          "camera": {
+            "move": "push",
+            "focusX": 0.45,
+            "focusY": 0.45
+          },
+          "sfx": {
+            "file": "sfx/fly_loop.wav",
+            "volume": 0.4,
+            "loop": true
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Your roommate walks past it without blinking,",
+      "shots": [
+        {
+          "scene": "roommateWalksPast",
+          "camera": {
+            "move": "panLeft"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "then looks at you. Every single time.",
+      "shots": [
+        {
+          "scene": "roommateStare",
+          "params": {
+            "intensity": 1
+          },
+          "camera": {
+            "move": "crash"
+          }
+        },
+        {
+          "scene": "youOnCouch",
+          "params": {
+            "mood": "sweat",
+            "moodFrom": "tired"
+          },
+          "camera": {
+            "move": "push"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "You make a to-do list about the trash.",
+      "shots": [
+        {
+          "scene": "todoDesk",
+          "params": {
+            "stage": 1
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "whipLeft",
+          "sfx": {
+            "file": "sfx/whoosh_b.wav",
+            "volume": 0.45,
+            "offset": -0.1
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Colour coded. Three priorities. A *motivational* quote.",
+      "shots": [
+        {
+          "scene": "todoDesk",
+          "params": {
+            "stage": 2
+          },
+          "camera": {
+            "move": "crash"
+          }
+        },
+        {
+          "scene": "todoDesk",
+          "params": {
+            "stage": 3
+          },
+          "camera": {
+            "move": "panRight"
+          },
+          "sfx": {
+            "file": "sfx/pop.wav",
+            "volume": 0.5,
+            "offset": 0.1
+          }
+        }
+      ]
+    },
+    {
+      "vo": "You tape it to the door. Right above the bag.",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "side",
+            "swell": 2.0,
+            "flies": 6,
+            "list": true
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "whipRight",
+          "sfx": {
+            "file": "sfx/whoosh_a.wav",
+            "volume": 0.45,
+            "offset": -0.1
+          }
+        }
+      ]
+    },
+    {
+      "vo": "The bag has its own shadow now.",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "front",
+            "swell": 2.2,
+            "flies": 9,
+            "night": true
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "dissolve"
+        }
+      ]
+    },
+    {
+      "vo": "Your roommate looks at you again.",
+      "shots": [
+        {
+          "scene": "roommateStare",
+          "params": {
+            "intensity": 2
+          },
+          "camera": {
+            "move": "crash"
+          },
+          "sfx": {
+            "file": "sfx/boing.wav",
+            "volume": 0.5,
+            "offset": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Then you install Sticky Tasks.",
+      "shots": [
+        {
+          "scene": "appPhone",
+          "params": {
+            "src": "app/home_list.png",
+            "colors": "teal",
+            "focus": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.0
+            },
+            "focusTo": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.15
+            }
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "zoomBlur",
+          "sfx": {
+            "file": "sfx/zoom_whoosh.wav",
+            "volume": 0.45,
+            "offset": -0.1
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Take out the trash. Eight a.m.",
+      "shots": [
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/home_list.png",
+            "colors": "teal",
+            "crop": {
+              "x": 0.01,
+              "y": 0.275,
+              "w": 0.98,
+              "h": 0.15
+            }
+          },
+          "camera": {
+            "move": "push",
+            "amount": 1.4
+          }
+        }
+      ]
+    },
+    {
+      "vo": "It pings. You swipe it away.",
+      "shots": [
+        {
+          "scene": "appPhone",
+          "params": {
+            "src": "app/banner.mp4",
+            "videoStart": 13.2,
+            "buzzing": true,
+            "focus": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.0
+            }
+          },
+          "camera": {
+            "move": "push"
+          },
+          "sfx": {
+            "file": "sfx/buzz_once.wav",
+            "volume": 0.5
+          }
+        },
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/banner.mp4",
+            "videoStart": 15.9,
+            "crop": {
+              "x": 0.03,
+              "y": 0.055,
+              "w": 0.94,
+              "h": 0.15
+            },
+            "entrance": "none"
+          },
+          "camera": {
+            "move": "panLeft"
+          },
+          "sfx": {
+            "file": "sfx/whoosh_b.wav",
+            "volume": 0.35,
+            "offset": 0.2
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Three minutes later, it's *back.*",
+      "shots": [
+        {
+          "scene": "timeSkipSign",
+          "params": {
+            "text": "3 MINUTES\nLATER"
+          },
+          "camera": {
+            "move": "crash"
+          },
+          "enter": "whipRight",
+          "sfx": {
+            "file": "sfx/time_skip.wav",
+            "volume": 0.5
+          }
+        },
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/returns.mp4",
+            "videoStart": 6.9,
+            "crop": {
+              "x": 0.03,
+              "y": 0.055,
+              "w": 0.94,
+              "h": 0.15
+            },
+            "wiggle": true,
+            "entrance": "drop"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 1.4,
+            "shake": 4
+          },
+          "sfx": {
+            "file": "sfx/phone_buzz.wav",
+            "volume": 0.45,
+            "loop": true,
+            "duration": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "vo": "You swipe again. It comes back again.",
+      "shots": [
+        {
+          "scene": "appPhone",
+          "params": {
+            "src": "app/banner.mp4",
+            "videoStart": 16.0,
+            "focus": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.0
+            }
+          },
+          "camera": {
+            "move": "panLeft"
+          }
+        },
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/returns.mp4",
+            "videoStart": 7.0,
+            "crop": {
+              "x": 0.03,
+              "y": 0.055,
+              "w": 0.94,
+              "h": 0.15
+            },
+            "wiggle": true
+          },
+          "camera": {
+            "move": "push",
+            "amount": 1.4
+          }
+        }
+      ]
+    },
+    {
+      "vo": "It's not angry. It's not disappointed.",
+      "shots": [
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/returns.mp4",
+            "videoStart": 7.6,
+            "crop": {
+              "x": 0.03,
+              "y": 0.055,
+              "w": 0.94,
+              "h": 0.15
+            },
+            "colors": "teal",
+            "entrance": "none"
+          },
+          "camera": {
+            "move": "push"
+          }
+        },
+        {
+          "scene": "roommateStare",
+          "params": {
+            "intensity": 3
+          },
+          "camera": {
+            "move": "push"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "It doesn't wait for *motivation.*",
+      "shots": [
+        {
+          "scene": "todoDesk",
+          "params": {
+            "stage": 3,
+            "torn": true
+          },
+          "camera": {
+            "move": "crash"
+          },
+          "enter": "whipLeft",
+          "sfx": {
+            "file": "sfx/record_scratch.wav",
+            "volume": 0.45
+          }
+        }
+      ]
+    },
+    {
+      "vo": "It just keeps asking until it's done.",
+      "shots": [
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/returns.mp4",
+            "videoStart": 18.6,
+            "crop": {
+              "x": 0.02,
+              "y": 0.232,
+              "w": 0.96,
+              "h": 0.145
+            },
+            "wiggle": true
+          },
+          "camera": {
+            "move": "push"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "So you grab the bag, walk it outside,",
+      "shots": [
+        {
+          "scene": "carryBag",
+          "camera": {
+            "move": "panRight"
+          },
+          "enter": "whipRight",
+          "sfx": {
+            "file": "sfx/whoosh_a.wav",
+            "volume": 0.45,
+            "offset": -0.1
+          }
+        },
+        {
+          "scene": "outsideBins",
+          "camera": {
+            "move": "pull"
+          },
+          "enter": "whipRight",
+          "sfx": {
+            "file": "sfx/whoosh_b.wav",
+            "volume": 0.4,
+            "offset": -0.1
+          }
+        }
+      ]
+    },
+    {
+      "vo": "and hit *Done,* purely out of spite.",
+      "shots": [
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/returns.mp4",
+            "videoStart": 19.3,
+            "crop": {
+              "x": 0.02,
+              "y": 0.232,
+              "w": 0.96,
+              "h": 0.145
+            },
+            "tap": {
+              "x": 0.204,
+              "y": 0.338,
+              "at": 1.0
+            },
+            "entrance": "none"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 1.4
+          },
+          "sfx": {
+            "file": "sfx/tap.wav",
+            "volume": 0.6,
+            "offset": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "vo": "The phone goes quiet. The flies leave.",
+      "shots": [
+        {
+          "scene": "appCard",
+          "params": {
+            "src": "app/completed_tab.png",
+            "colors": "teal",
+            "crop": {
+              "x": 0.01,
+              "y": 0.06,
+              "w": 0.98,
+              "h": 0.4
+            }
+          },
+          "camera": {
+            "move": "pull"
+          }
+        },
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "front",
+            "empty": true
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "dissolve"
+        }
+      ]
+    },
+    {
+      "vo": "Your roommate almost smiles.",
+      "shots": [
+        {
+          "scene": "roommateStare",
+          "params": {
+            "smile": true
+          },
+          "camera": {
+            "move": "push"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Sticky Tasks. Link in bio.",
+      "shots": [
+        {
+          "scene": "endCard",
+          "camera": {
+            "move": "pull"
+          },
+          "enter": "whipLeft",
+          "sfx": {
+            "file": "sfx/tada.wav",
+            "volume": 0.5
+          },
+          "hideCaptions": true
+        }
+      ]
+    },
+    {
+      "vo": "Because the next bag is already by the door.",
+      "shots": [
+        {
+          "scene": "bagByDoor",
+          "params": {
+            "angle": "front",
+            "swell": 1.0
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "dissolve"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "razamit",
+  "owner": { "name": "Amit Raz", "url": "https://github.com/razamit" },
+  "metadata": { "description": "Claude Code plugins by Amit Raz" },
+  "plugins": [
+    {
+      "name": "cartoon-shorts",
+      "source": "./",
+      "description": "Make vertical cartoon story shorts that promote your app, with the real app on screen."
+    }
+  ]
+}

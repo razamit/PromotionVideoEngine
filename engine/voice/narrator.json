@@ -1,0 +1,17 @@
+{
+ "version": 2,
+ "designedWith": "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16",
+ "instruct": "Quick, dry, sardonic young man narrating a cartoon story short to the viewer. Rapid-fire delivery with barely any gaps, upbeat mid-high pitch that rises and falls a lot, deadpan jokes delivered at full speed, clear diction, close to the microphone.",
+ "lang_code": "english",
+ "seed": 7,
+ "text": "You set an alarm for six. You wake up at nine. And you tell yourself it's fine, because technically, you did wake up. That is the kind of person we are dealing with here.",
+ "measured": {
+  "wpm": 227.3,
+  "wer": 0.0,
+  "f0_std_semitones": 4.33,
+  "f0_median_hz": 196
+ },
+ "why": "Reference narrator measures about 215 wpm, 175-210 Hz with a wide swing; this take is the closest of 8 v2 takes.",
+ "previous": "takes_v1/take_seed7.wav (175 wpm, 142 Hz, too slow for the measured reference)",
+ "note": "Designed voice from a text description, not a clone of any real person. Trimmed take, 24 kHz mono. Re-lock by copying another take here and keeping series_narrator.txt as its transcript."
+}

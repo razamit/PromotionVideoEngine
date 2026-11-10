@@ -1,0 +1,15 @@
+node_modules/
+.DS_Store
+__pycache__/
+# per-short build output
+shorts/*/out/
+shorts/*/.public/
+shorts/*/.cache/
+shorts/*/public/vo/
+shorts/*/public/music/takes/
+shorts/*/node_modules
+engine/.tsconfig.*.json
+engine/example/out/
+engine/example/public/vo/
+engine/example/.cache/
+engine/example/.public/

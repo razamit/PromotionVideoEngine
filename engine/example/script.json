@@ -1,0 +1,121 @@
+{
+  "title": "Template smoke test",
+  "fps": 30,
+  "voice": {
+    "engine": "mlx",
+    "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16",
+    "refAudio": "voice/series_narrator.wav",
+    "lang": "english",
+    "seed": 7,
+    "tempo": 1.05
+  },
+  "gapAfterLine": 0.12,
+  "tailSeconds": 0.4,
+  "autoSfx": true,
+  "music": null,
+  "lines": [
+    {
+      "vo": "This trash bag has been here since *Tuesday.*",
+      "shots": [
+        {
+          "scene": "roomWithBag",
+          "params": {
+            "swell": 1
+          },
+          "camera": {
+            "move": "crashOut",
+            "focusX": 0.35,
+            "focusY": 0.72
+          }
+        },
+        {
+          "scene": "roomWithBag",
+          "params": {
+            "swell": 1.6,
+            "face": {
+              "eyes": "wide",
+              "mouth": "scream",
+              "sweat": true
+            }
+          },
+          "camera": {
+            "move": "crash",
+            "focusX": 0.35,
+            "focusY": 0.8,
+            "shake": 10
+          },
+          "enter": "zoomBlur"
+        }
+      ]
+    },
+    {
+      "vo": "Then your phone starts *yelling.*",
+      "shots": [
+        {
+          "scene": "phoneFocus",
+          "params": {
+            "src": "app/demo_home_list.png",
+            "focus": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.0
+            },
+            "focusTo": {
+              "x": 0.5,
+              "y": 0.3,
+              "zoom": 1.15
+            }
+          },
+          "camera": {
+            "move": "push"
+          },
+          "enter": "whipLeft"
+        },
+        {
+          "scene": "cardReveal",
+          "params": {
+            "src": "app/demo_banner.mp4",
+            "videoStart": 1.0,
+            "crop": {
+              "x": 0.03,
+              "y": 0.055,
+              "w": 0.94,
+              "h": 0.15
+            }
+          },
+          "camera": {
+            "move": "push",
+            "shake": 4
+          },
+          "enter": "dissolve",
+          "sfx": [
+            {
+              "file": "sfx/buzz_once.wav",
+              "volume": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "vo": "Sticky Tasks. Link in bio.",
+      "shots": [
+        {
+          "scene": "endCard",
+          "params": {},
+          "camera": {
+            "move": "pull"
+          },
+          "enter": "whipRight",
+          "hideCaptions": true,
+          "sfx": [
+            {
+              "file": "sfx/tada.wav",
+              "volume": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
