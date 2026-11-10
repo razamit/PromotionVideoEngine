@@ -8,6 +8,10 @@ one-or-two-word captions, a music bed, sound effects, a twist and a loop.
 The app shows up inside a cartoon phone, from real screenshots and screen
 recordings.
 
+This 60-second short is about the plugin, and the plugin made it:
+
+https://github.com/user-attachments/assets/9539f62e-52ba-4a17-adec-a7b30ab1adae
+
 It's a [Claude Code](https://claude.com/claude-code) plugin with two parts:
 
 - **The engine** (`engine/`): a Remotion 4 + three.js project that renders
