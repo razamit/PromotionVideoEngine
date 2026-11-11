@@ -261,8 +261,10 @@ Any CLI that reads a text file and writes audio:
 ```
 
 `{text_file}` is the line's text with the emphasis stars removed; `{out}`
-must be written as any format ffmpeg reads. Never put an API key in
-`script.json`; read it from the environment inside the command.
+must be written as any format ffmpeg reads. The plugin never handles API
+keys. A paid CLI signs in through its own login or config, which the user
+sets up themselves; never put a key in `script.json`, and never look one up
+on the user's machine.
 
 ## Licences
 

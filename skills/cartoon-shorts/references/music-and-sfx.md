@@ -153,21 +153,27 @@ the bed sits at the voice's loudness, `volume` reads
 as dB under the voice. Change the script's length and the next `npm run
 music` composes new takes at the new length.
 
-### Setting up ACE-Step (once per Mac)
+### Setting up ACE-Step (once per Mac, done by the user)
 
-```bash
-mkdir -p ~/.cache/cartoon-shorts/acestep && cd ~/.cache/cartoon-shorts/acestep
-git clone --depth 1 https://github.com/ACE-Step/ACE-Step-1.5.git
-python3.12 -m venv uvtool && ./uvtool/bin/pip install uv
-cd ACE-Step-1.5
-UV_PYTHON=$(which python3.12) UV_CACHE_DIR=../uv-cache ../uvtool/bin/uv sync
-.venv/bin/acestep-download        # 9.4 GB: turbo DiT, 1.7B LM, embedding, VAE
-```
+ACE-Step is third-party software with a 9.4 GB model download, so the user
+installs it, not the session. Never fetch, install or run its setup on the
+user's behalf. If `npm run music` reports that ACE-Step is missing, stop,
+tell the user, and point them at these facts:
 
-Tested at commit `ca1e85f` (2026-08-29). Set `CARTOON_SHORTS_ACESTEP` to
-use a checkout somewhere else. The generator settings (turbo DiT, 8 steps,
-shift 3.0, the LM rewriting the caption first) are in
-`scripts/music_acestep.py`.
+- Source: the ACE-Step 1.5 repository on GitHub (`ACE-Step/ACE-Step-1.5`),
+  installed by following its own README. Tested at commit `ca1e85f`
+  (2026-08-29) with Python 3.12 and a `uv`-managed `.venv` inside the
+  checkout.
+- Models: the checkout's own model download step (turbo DiT, 1.7B LM,
+  embedding, VAE; about 9.4 GB).
+- Location: the engine looks for the checkout at
+  `~/.cache/cartoon-shorts/acestep/ACE-Step-1.5` and runs
+  `.venv/bin/python` inside it. Set `CARTOON_SHORTS_ACESTEP` to use a
+  checkout somewhere else.
+
+Until it is installed, use a bed from somewhere else (below) or no music.
+The generator settings (turbo DiT, 8 steps, shift 3.0, the LM rewriting the
+caption first) are in `scripts/music_acestep.py`.
 
 ### Writing the prompt
 
