@@ -1,5 +1,9 @@
 # Script and shot list
 
+This is the bean style's script guide. A toy short (`"style": "toy"`) has
+its own budget, template and caption fields in `toy-style.md`; the
+script.json format below is shared.
+
 ## Budget
 
 | Item | Target |
@@ -99,6 +103,9 @@ Fields:
 - `lines[].gapAfter`: a pause after a line, for a beat that needs to land
   (0.3-0.5 s, rarely).
 - `voice`: see voice-and-audio.md.
+- `style`: `"bean"` (default) or `"toy"`. Toy switches the lint limits and
+  the caption default (toy-style.md).
+- `lines[].caption`: serif captions only: `title`, `line` or `none`.
 
 ## Review table (what the channel owner sees before anything is built)
 

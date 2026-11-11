@@ -203,6 +203,16 @@ def swat():
     return finish(crack + slap * 1.4 + body)
 
 
+def stamp():
+    """Rubber stamp on paper: a dull low thunk with a short papery slap, no crack."""
+    t = timeline(0.4)
+    noise = rng_for(131).standard_normal(t.size)
+    slap = filt(noise, "bandpass", [180, 1400]) * decay(t, 0.03) * np.clip(t / 0.002, 0, 1)
+    body = thump(t, 110, 42, 0.2) * 1.3
+    rattle = filt(noise, "bandpass", [900, 2600]) * decay(np.clip(t - 0.05, 0, None), 0.05) * (t >= 0.05) * 0.12
+    return finish(filt(body + slap * 0.9 + rattle, "lowpass", 3800))
+
+
 def fly_voice(t, f0, period, fm_cycles, am_cycles, depth):
     """Sawtooth-ish fly with periodic FM; closed-form phase keeps the loop exact."""
     rate = fm_cycles / period
@@ -300,6 +310,7 @@ KIT = {
     "buzz_once": buzz_once,
     "ding": ding,
     "swat": swat,
+    "stamp": stamp,
     "fly_loop": fly_loop,
     "tap": tap,
     "boing": boing,

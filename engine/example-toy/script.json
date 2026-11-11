@@ -1,0 +1,272 @@
+{
+  "title": "Toy style smoke test",
+  "style": "toy",
+  "fps": 30,
+  "voice": {
+    "engine": "none",
+    "wpm": 135
+  },
+  "gapAfterLine": 0.25,
+  "tailSeconds": 1.6,
+  "autoSfx": false,
+  "music": null,
+  "captions": {
+    "style": "serif",
+    "accent": "#FF4B3A"
+  },
+  "notes": "Smoke test of the toy style, in the analogy shape (references/toy-style.md). Captures are the Sticky Tasks demo captures. The phone shot shows the screenshot whole and lifts the task row out as a callout, cropped on the row's own edges, so the row is large and nothing of it is cut.",
+  "lines": [
+    {
+      "vo": "Nobody forgets a 5 AM *flight.*",
+      "caption": "title",
+      "shots": [
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "close",
+            "pose": "sit",
+            "mood": "tired"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.6
+          },
+          "sfx": "sfx/phone_buzz.wav",
+          "weight": 1.5
+        },
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "clock",
+            "pose": "sit",
+            "mood": "tired",
+            "time": "5:00"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "vo": "you slept three hours.",
+      "shots": [
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "wide",
+            "pose": "sit",
+            "mood": "tired",
+            "readout": {
+              "label": "Last night's sleep",
+              "value": "3 hrs"
+            }
+          },
+          "camera": {
+            "move": "push"
+          }
+        }
+      ]
+    },
+    {
+      "vo": "you go anyway.",
+      "shots": [
+        {
+          "scene": "toyGate",
+          "params": {},
+          "camera": {
+            "move": "panLeft",
+            "amount": 0.4
+          }
+        }
+      ]
+    },
+    {
+      "vo": "because the ticket says so.",
+      "shots": [
+        {
+          "scene": "toyGate",
+          "params": {
+            "ticket": {
+              "title": "Boarding pass",
+              "fields": [
+                {
+                  "label": "From",
+                  "value": "Home"
+                },
+                {
+                  "label": "Boards",
+                  "value": "5:00 AM"
+                }
+              ],
+              "stub": {
+                "label": "Fare",
+                "value": "$300"
+              },
+              "y": 0.3,
+              "stamp": {
+                "text": "No refunds",
+                "x": 0.5,
+                "y": 0.62,
+                "size": 84,
+                "atSeconds": 0.7
+              }
+            }
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.5
+          },
+          "sfx": {
+            "file": "sfx/stamp.wav",
+            "offset": 0.7
+          }
+        }
+      ]
+    },
+    {
+      "vo": "the laundry?",
+      "shots": [
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "close",
+            "pose": "slump",
+            "mood": "sad",
+            "time": "9:40"
+          },
+          "camera": {
+            "move": "pull",
+            "amount": 0.6
+          },
+          "captionY": 0.69
+        }
+      ]
+    },
+    {
+      "vo": "nothing asks twice.",
+      "shots": [
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "wide",
+            "pose": "slump",
+            "mood": "sad",
+            "stamp": {
+              "text": "Later",
+              "x": 0.46,
+              "y": 0.3,
+              "atSeconds": 0.5
+            }
+          },
+          "camera": {
+            "move": "push"
+          },
+          "sfx": {
+            "file": "sfx/stamp.wav",
+            "offset": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "vo": "sticky tasks asks again.",
+      "shots": [
+        {
+          "scene": "toyBedroom",
+          "params": {
+            "angle": "low",
+            "pose": "sit",
+            "mood": "neutral",
+            "phone": {
+              "src": "app/demo_home_list.png",
+              "height": 1000,
+              "y": 0.36,
+              "note": "Example tasks"
+            },
+            "callout": {
+              "src": "app/demo_home_list.png",
+              "crop": {
+                "x": 0.0389,
+                "y": 0.3075,
+                "w": 0.9222,
+                "h": 0.1146
+              },
+              "y": 0.3,
+              "width": 800,
+              "corner": 0.045,
+              "atSeconds": 0.55
+            }
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.5
+          },
+          "captionY": 0.68,
+          "sfx": "sfx/ding.wav"
+        }
+      ]
+    },
+    {
+      "vo": "and again, until it is *done.*",
+      "shots": [
+        {
+          "scene": "toyStreet",
+          "params": {
+            "mood": "happy"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.5
+          }
+        },
+        {
+          "scene": "toyDoorstep",
+          "params": {
+            "light": "dawn",
+            "stamp": {
+              "text": "Done",
+              "x": 0.46,
+              "y": 0.3,
+              "color": "#2E9E5B",
+              "atSeconds": 0.35
+            }
+          },
+          "camera": {
+            "move": "push"
+          },
+          "sfx": {
+            "file": "sfx/stamp.wav",
+            "offset": 0.35
+          }
+        }
+      ]
+    },
+    {
+      "vo": "Sticky Tasks.",
+      "caption": "none",
+      "shots": [
+        {
+          "scene": "endCard",
+          "params": {
+            "name": "Sticky Tasks",
+            "tagline": "Reminders that come back",
+            "headline": [
+              "Until it",
+              "is done."
+            ],
+            "cta": "Get the app",
+            "accent": "#0E7C70"
+          },
+          "camera": {
+            "move": "push",
+            "amount": 0.3
+          },
+          "hideCaptions": true,
+          "sfx": "sfx/tada.wav"
+        }
+      ]
+    }
+  ]
+}

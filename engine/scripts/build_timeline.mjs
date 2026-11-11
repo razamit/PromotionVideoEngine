@@ -79,19 +79,20 @@ function measureLines(script, voice, baseDir) {
 
 function layoutLines(script, measured) {
   const defaultGap = script.gapAfterLine ?? 0.12; // reference: 0.15-0.25 s between sentences, never more
-  const words = [], shots = [], gaps = [];
+  const words = [], shots = [], gaps = [], lines = [];
   let cursor = 0;
   script.lines.forEach((line, i) => {
     const { duration, aligned } = measured[i];
     const gap = line.gapAfter ?? defaultGap;
     gaps.push(gap);
-    words.push(...timeLineWords(measured[i].words, cursor, duration, aligned));
+    words.push(...timeLineWords(measured[i].words, cursor, duration, aligned).map((w) => ({ ...w, line: i })));
+    lines.push({ index: i, start: cursor, end: cursor + duration, caption: line.caption ?? (script.style === "toy" && i === 0 ? "title" : "line") });
     shots.push(...splitShots(line, i, cursor, cursor + duration + gap, shots.length));
     cursor += duration + gap;
   });
   const files = measured.map((m) => m.file).filter(Boolean);
   const alignedCount = measured.filter((m) => m.aligned).length;
-  return { words, shots, files, gaps, spoken: cursor, alignedCount };
+  return { words, lines, shots, files, gaps, spoken: cursor, alignedCount };
 }
 
 function report(script, words, shots, totalSeconds) {
@@ -99,8 +100,11 @@ function report(script, words, shots, totalSeconds) {
   const longest = Math.max(0, ...body.map((s) => s.end - s.start));
   console.log(`${script.lines.length} lines, ${words.length} words, ${shots.length} shots`);
   console.log(`length ${totalSeconds.toFixed(1)}s, ${((words.length / totalSeconds) * 60).toFixed(0)} wpm, longest shot ${longest.toFixed(2)}s`);
-  if (longest > 2.2) console.log("WARNING: a shot runs past 2.2s; split it or give it a stronger camera move");
-  if (totalSeconds > 62) console.log("WARNING: over 62s; YouTube Shorts and the 45-60s target both want it shorter");
+  const toy = script.style === "toy";
+  const maxShot = toy ? 2.6 : 2.2;
+  if (longest > maxShot) console.log(`WARNING: a shot runs past ${maxShot}s; split it or give it a stronger camera move`);
+  if (toy && totalSeconds > 35) console.log("WARNING: over 35s; a toy short is 20-30s (references/toy-style.md)");
+  if (!toy && totalSeconds > 62) console.log("WARNING: over 62s; YouTube Shorts and the 45-60s target both want it shorter");
 }
 
 function main() {
@@ -112,7 +116,7 @@ function main() {
   mkdirSync(dirname(OUT_JSON), { recursive: true });
 
   const measured = measureLines(script, voice, dirname(scriptPath));
-  const { words, shots, files, gaps, spoken, alignedCount } = layoutLines(script, measured);
+  const { words, lines, shots, files, gaps, spoken, alignedCount } = layoutLines(script, measured);
   const tail = script.tailSeconds ?? 1.2;
   shots[shots.length - 1].end += tail;
   const totalSeconds = spoken + tail;
@@ -124,14 +128,16 @@ function main() {
   }
   const timeline = {
     title: script.title,
+    style: script.style ?? "bean",
     fps,
     durationInFrames: Math.ceil(totalSeconds * fps),
     voFile,
     music: script.music ?? null,
     autoSfx: script.autoSfx ?? true,
-    captions: script.captions,
+    captions: script.captions ?? (script.style === "toy" ? { style: "serif" } : undefined),
     wordTiming: alignedCount === 0 ? "estimated" : alignedCount === measured.length ? "aligned" : "mixed",
     words,
+    lines,
     shots,
   };
   writeFileSync(OUT_JSON, JSON.stringify(timeline, null, 2));

@@ -22,6 +22,7 @@ All files: 48 kHz, mono, 16-bit PCM, peak -6 dBFS.
 | buzz_once.wav | 0.40 s | One "BZZT!" | 41 |
 | ding.wav | 1.10 s | Generic two-tone chime (glockenspiel E5 then C#6), not modelled on any phone or app sound | none |
 | swat.wav | 0.35 s | Rolled-newspaper thwack | 61 |
+| stamp.wav | 0.40 s | Rubber stamp on paper: low thunk and a dull slap (for the toy style's Stamp overlay) | 131 |
 | fly_loop.wav | 2.00 s | Two flies circling, seamless loop | none |
 | tap.wav | 0.06 s | Soft UI tap | 81 |
 | boing.wav | 0.85 s | Spring boing | none |

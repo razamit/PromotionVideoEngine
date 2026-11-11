@@ -36,10 +36,10 @@ export type RoomProps = {
   children?: React.ReactNode; // furniture from props3d.tsx
 };
 
-type CatchUp = { zoom: number; shiftX: number; shiftY: number };
+export type CatchUp = { zoom: number; shiftX: number; shiftY: number };
 
 /** Moves the camera toward lookAt so the focal plane grows by `zoom`, then trucks it to shift the image. */
-function applyCatchUp(camera: THREE.PerspectiveCamera, target: THREE.Vector3, catchUp: CatchUp, aspect: number) {
+export function applyCatchUp(camera: THREE.PerspectiveCamera, target: THREE.Vector3, catchUp: CatchUp, aspect: number) {
   const forward = target.clone().sub(camera.position);
   const distance = forward.length();
   forward.normalize();

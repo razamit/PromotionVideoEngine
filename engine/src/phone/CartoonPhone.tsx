@@ -50,7 +50,7 @@ function BuzzLines({ width, height }: { width: number; height: number }) {
 }
 
 /** The capture's rectangle on the screen at this frame: focus zoom if set, else the scroll. */
-function useScreenRect(screen: { width: number; height: number }, props: CartoonPhoneProps) {
+export function useScreenRect(screen: { width: number; height: number }, props: CartoonPhoneProps) {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const capture = useCaptureSize(props.src, props.captureSize);

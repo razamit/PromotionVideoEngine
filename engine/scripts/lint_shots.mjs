@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 // script.json + generated/timeline.json -> warnings and errors about the
 // cut, before anything is rendered: repeated angles, long or static shots, a
-// weak first frame, captions under the platform UI, unreadable app screens,
-// no sound effects, length and pace, em dashes and risky claim words.
+// weak first frame, captions under the platform UI, app screens that cannot
+// be read or that cut the element they show (lint_app_shots.mjs), no sound
+// effects, length and pace, em dashes and risky claim words.
 // Every finding names the shot (timeline index, as in `npm run review`), its
 // start time and a fix. Exit code 1 only when there are errors.
 // Usage: node scripts/lint_shots.mjs [script.json]
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { checkAppShots } from "./lint_app_shots.mjs";
 import { ENGINE, SHORT, TIMELINE_FILE, publicFile } from "./paths.mjs";
 
 const SCRIPT_FILE = join(SHORT, process.argv[2] ?? "script.json");
@@ -23,13 +25,32 @@ const LIMITS = {
   maxWpm: 230,
   minPhoneHeight: 1500,
   readableFocusZoom: 1.6, // a focus zoom this tight reads at any phone height
+  minCalloutScale: 0.6, // frame px per capture px of an element lifted out of the phone: what a 1.6x zoom gives
+  declareElement: false, // a zoomed phone shot must say which element it shows, so its wholeness can be checked
   maxAngleRepeats: 2,
   maxSceneUses: 4,
   captionHalfHeight: 0.03, // 104 px type with stroke, as a fraction of 1920
   defaultCaptionY: 0.64,
   frameHeight: 1920,
 };
-const DEFAULT_SAFE_ZONE = { top: 0.12, bottom: 0.75 };
+// The toy style (script.style "toy", references/toy-style.md) is a shorter,
+// calmer format: 20-30 s, a line of caption per thought, shots that may hold
+// a little longer. These replace the limits above for such a short.
+const TOY_LIMITS = {
+  maxShotSeconds: 2.6,
+  maxFirstShotSeconds: 2.6,
+  minSeconds: 18,
+  maxSeconds: 35,
+  minWpm: 100,
+  maxWpm: 185,
+  minPhoneHeight: 1200,
+  maxSceneUses: 6, // one place, seen from several angles of the same scene
+  captionHalfHeight: 0.04, // up to two lines of 60 px serif
+  defaultCaptionY: 0.56,
+  declareElement: true,
+  tallPhoneReads: true, // a whole screenshot in a phone minPhoneHeight or taller needs no zoom
+};
+const DEFAULT_SAFE_ZONE = { top: 0.12, bottom: 0.75, left: 0.06, right: 0.87 };
 const EM_DASH = "\u2014";
 const CLAIM_WORDS = /(^|[^\p{L}])(never|always|best|guaranteed?|forever)(?=$|[^\p{L}])|#1\b/giu;
 
@@ -74,7 +95,9 @@ function loadSafeZone() {
   const bottom = pick("bottom") ?? DEFAULT_SAFE_ZONE.bottom;
   // A "bottom" written as the covered band (0.25) rather than the edge (0.75).
   const bottomEdge = bottom < 0.5 ? 1 - bottom : bottom;
-  return { top, bottom: bottomEdge, source: "src/layout/safeZone.ts" };
+  const left = pick("left") ?? DEFAULT_SAFE_ZONE.left;
+  const right = pick("right") ?? DEFAULT_SAFE_ZONE.right;
+  return { top, bottom: bottomEdge, left, right: right < 0.5 ? 1 - right : right, source: "src/layout/safeZone.ts" };
 }
 
 function checkFreshness(script, timeline) {
@@ -194,44 +217,28 @@ function groupWords(words, minSeconds = 0.28) {
   return groups;
 }
 
-function checkCaptionZone(shots, words, zone) {
-  const groups = groupWords(words);
+/** Serif captions show a whole line at a time; title lines sit at the top and are clamped by the engine. */
+function serifGroups(timeline) {
+  return (timeline.lines ?? []).filter((line) => line.caption === "line").map((line) => ({
+    start: line.start, end: line.end, text: timeline.words.filter((w) => w.line === line.index).map((w) => w.text).join(" "),
+  }));
+}
+
+function checkCaptionZone(timeline, zone) {
+  const serif = timeline.captions?.style === "serif";
+  const groups = serif ? serifGroups(timeline) : groupWords(timeline.words);
   const epsilon = 1e-6;
-  for (const shot of shots) {
+  for (const shot of timeline.shots) {
     if (shot.hideCaptions) continue;
     const shown = groups.filter((g) => g.start < shot.end && g.end > shot.start);
     if (shown.length === 0) continue;
-    const y = shot.captionY ?? LIMITS.defaultCaptionY;
+    const y = shot.captionY ?? timeline.captions?.y ?? LIMITS.defaultCaptionY;
     const top = y - LIMITS.captionHalfHeight;
     const bottom = y + LIMITS.captionHalfHeight;
     if (top >= zone.top - epsilon && bottom <= zone.bottom + epsilon) continue;
     add("warn", "caption-zone", tag(shot),
       `captionY ${y} puts "${shown[0].text}" at ${top.toFixed(2)}-${bottom.toFixed(2)}, outside ${zone.top.toFixed(2)}-${zone.bottom.toFixed(2)}`,
       `keep captionY between ${(zone.top + LIMITS.captionHalfHeight).toFixed(2)} and ${(zone.bottom - LIMITS.captionHalfHeight).toFixed(2)}; move the phone, not the caption`);
-  }
-}
-
-const isAppShot = (shot) => typeof shot.params?.src === "string" && /(^|\/)app\//.test(shot.params.src);
-
-/** The zoom the shot lands on and holds for reading (focusTo, else focus), or 0 without one. */
-function landingZoom(params) {
-  const landing = params.focusTo ?? params.focus;
-  return typeof landing?.zoom === "number" ? landing.zoom : 0;
-}
-
-function checkLegibility(shots) {
-  for (const shot of shots.filter(isAppShot)) {
-    const params = shot.params;
-    const framed = params.focus !== undefined || params.crop !== undefined;
-    const zoomedIn = landingZoom(params) >= LIMITS.readableFocusZoom;
-    const height = params.height ?? params.phoneHeight;
-    const problems = [];
-    if (!framed) problems.push("no focus or crop");
-    if (height === undefined && !framed) problems.push("phone height not set");
-    if (height !== undefined && height < LIMITS.minPhoneHeight && !zoomedIn) problems.push(`phone height ${height}`);
-    if (problems.length === 0) continue;
-    add("warn", "legibility", `${tag(shot)} ${params.src}`, problems.join(", "),
-      `the app text must read at phone size: crop/focus on the one UI element that matters (focus zoom >= ${LIMITS.readableFocusZoom}), or phone height >= ${LIMITS.minPhoneHeight}`);
   }
 }
 
@@ -267,11 +274,11 @@ function checkLengthAndPace(timeline) {
   const wpm = (timeline.words.length / seconds) * 60;
   if (seconds < LIMITS.minSeconds || seconds > LIMITS.maxSeconds) {
     add("warn", "length", "whole short", `${seconds.toFixed(1)}s, outside ${LIMITS.minSeconds}-${LIMITS.maxSeconds}s`,
-      "cut or add lines; 50-60s is the target");
+      `cut or add lines; ${LIMITS.minSeconds < 30 ? "20-30s" : "50-60s"} is the target`);
   }
   if (wpm < LIMITS.minWpm || wpm > LIMITS.maxWpm) {
     add("warn", "pace", "whole short", `${wpm.toFixed(0)} wpm, outside ${LIMITS.minWpm}-${LIMITS.maxWpm}`,
-      "change the voice speed or the word count; about 215 wpm is the reference pace");
+      LIMITS.maxWpm < 200 ? "a toy short is read calmly, about 130-160 wpm; change the word count or the voice tempo" : "change the voice speed or the word count; about 215 wpm is the reference pace");
   }
   return { seconds, wpm };
 }
@@ -311,14 +318,15 @@ function main() {
   const script = readJson(SCRIPT_FILE, "script");
   const timeline = readJson(TIMELINE_FILE, "timeline (run `npm run timeline`)");
   const shots = timeline.shots;
+  if ((script.style ?? timeline.style) === "toy") Object.assign(LIMITS, TOY_LIMITS);
   const zone = loadSafeZone();
   checkFreshness(script, timeline);
   checkHook(shots);
   checkRepeats(shots);
   checkConsecutive(shots);
   checkPacing(shots);
-  checkCaptionZone(shots, timeline.words, zone);
-  checkLegibility(shots);
+  checkCaptionZone(timeline, zone);
+  checkAppShots(shots, { limits: LIMITS, add, tag, zone });
   checkSfx(timeline);
   const { seconds, wpm } = checkLengthAndPace(timeline);
   checkText(script, timeline);

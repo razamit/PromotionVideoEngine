@@ -1,12 +1,17 @@
 # Cartoon Engine
 
-Make vertical cartoon story shorts (TikTok, YouTube Shorts, Instagram Reels,
-1080x1920, 45 to 60 s) that promote an app, with the real app on screen.
-Bean characters with thick outlines in a cel-shaded three.js world, a
-camera that moves every second or two, one fast second-person narrator,
-one-or-two-word captions, a music bed, sound effects, a twist and a loop.
-The app shows up inside a cartoon phone, from real screenshots and screen
-recordings.
+Make vertical cartoon shorts (TikTok, YouTube Shorts, Instagram Reels,
+1080x1920) that promote an app, with the real app on screen, from real
+screenshots and screen recordings. Two house styles:
+
+- **Bean** (45 to 60 s): bean characters with thick outlines in a
+  cel-shaded three.js world, a camera that moves every second or two, one
+  fast second-person narrator, one-or-two-word captions, a music bed, sound
+  effects, a twist and a loop. The app shows up inside a cartoon phone.
+- **Toy** (20 to 30 s): soft 3D toy figures in a lit set with shadows, a
+  serif title and one caption line per thought, an analogy instead of a
+  plot, the app on a phone floating over the figure, stamps and readouts,
+  and an end card with a button. Ask for "a toy-style short".
 
 This 60-second short is about the plugin, and the plugin made it:
 
@@ -103,11 +108,12 @@ captions carry the story with the sound off.
 .claude-plugin/             plugin.json and marketplace.json
 engine/                     the Remotion project (installed to ~/.cache/cartoon-shorts/engine)
   bin/short.mjs             what each short's npm scripts call
-  src/                      characters, world, camera, phone, captions, scenes
+  src/                      characters, world, camera, phone, captions, scenes, toy (the 3D style)
   scripts/                  timeline, TTS, alignment, music, lint, review, finish
   public/sfx/               generated sound-effect kit
   voice/                    the narrator reference clip (a designed voice)
   example/                  the starter short new_short.sh copies
+  example-toy/              the toy-style starter (new_short.sh --style toy)
 skills/cartoon-shorts/
   SKILL.md                  the workflow
   references/               format recipe, script rules, engine guide, audio, review, publishing
@@ -157,3 +163,7 @@ on the new engine.
 The format follows viral cartoon story Shorts, as broken down in an X post
 by @zeuuss_01 (November 2026). `references/format-recipe.md` has the
 second-by-second measurements the engine's defaults come from.
+
+The toy style follows the 3D reels of the running app Renno, as shared in
+an X post by @cesaralvarezll quoting @jacobrodri_ (November 2026).
+`references/toy-style.md` has the breakdown.

@@ -132,6 +132,17 @@ Rule of thumb: app body text at least about 28 px tall in the final
 
 - At zoom 2 the screen shows about half the capture's width; centre `x`
   on what must be read (a task title starting at x 0.09 needs x about 0.3).
+- **Readable is half the test; the element must also be whole.** A zoom
+  narrows what the phone shows: 62% of the capture's width at 1.6x, 50% at
+  2x. A notification banner, a settings row and a task row are about 92%
+  wide, so they fit only up to about 1.07x, and any readable zoom cuts
+  their right-hand end (the last button, a priority tag). Zoom the phone
+  only on an element narrow enough to fit, and show a full-width element
+  as a `CaptureCard` cropped on its own edges (toy style: `params.callout`,
+  toy-style.md). To have the lint check a zoom, give the shot the
+  element's box: `"element": {"x": 0.09, "y": 0.325, "w": 0.34, "h": 0.03}`
+  in capture fractions, beside `focus`. `npm run lint` then fails the shot
+  with `cut-element` when the landing zoom does not show all of it.
 - Start a `focusTo` move already part-zoomed (1.4 or more): the shot is
   only readable once the zoom lands, and shots are 2 s.
 - `CaptureCard` crop: frame it tight on the content (the banner, one task

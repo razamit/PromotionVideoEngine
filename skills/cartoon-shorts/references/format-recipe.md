@@ -1,5 +1,8 @@
 # Format recipe: what the reference does
 
+This is the bean style's reference. The toy style has its own, measured
+from a different viral format: `toy-style.md`.
+
 Source: an X post by @zeuuss_01 (2026-11-03,
 https://x.com/zeuuss_01/status/2117380789608272078) about the YouTube
 Shorts channel **Ricks Clips**. Three of its cartoon shorts reached 30M, 16M

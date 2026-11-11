@@ -44,6 +44,7 @@ All 48 kHz mono, peak -6 dBFS. The default gain per file is in
 | `buzz_once.wav` | 0.5 | One "BZZT!" accent | "BZZT!" burst |
 | `ding.wav` | 0.6 | A generic notification (rising E5 to C#6 glockenspiel, deliberately not any real phone's sound) | "ding." speech burst, the old polite ping |
 | `swat.wav` | 0.7 | A swipe-away played as a slap | "SWAT" |
+| `stamp.wav` | 0.75 | A `Stamp` landing (toy style); set `offset` to the stamp's `atSeconds` | none: made for the toy style |
 | `fly_loop.wav` (loop, 2 s) | 0.25 | Flies around the bag, `"loop": true` | Thursday flies |
 | `tap.wav` | 0.6 | A finger on a real capture (`TapRing`) | The tap on Done |
 | `boing.wav` | 0.55 | The twist, a comic reversal | Bag the size of a dog |
