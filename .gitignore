@@ -19,3 +19,5 @@ engine/example-toy/.cache/
 engine/example-toy/.public/
 engine/example-toy/node_modules
 engine/example/node_modules
+# drafts of public posts, kept local
+posts/
