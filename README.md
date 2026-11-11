@@ -17,6 +17,11 @@ This 60-second short is about the plugin, and the plugin made it:
 
 https://github.com/user-attachments/assets/9539f62e-52ba-4a17-adec-a7b30ab1adae
 
+The same short with a British narrator. The voice is one block in
+`script.json`, picked from a roster of twelve:
+
+https://github.com/user-attachments/assets/a2b12209-0125-44f7-a270-32ec355e53f7
+
 It's a [Claude Code](https://claude.com/claude-code) plugin with two parts:
 
 - **The engine** (`engine/`): a Remotion 4 + three.js project that renders
