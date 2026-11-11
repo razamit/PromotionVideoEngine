@@ -76,6 +76,22 @@ python3.12 -m venv ~/.cache/cartoon-shorts/venv-audio
 ~/.cache/cartoon-shorts/venv-audio/bin/pip install mlx-audio==0.6.4 "misaki[en]" librosa
 ```
 
+## Network and data
+
+Everything runs on your machine: script, voice, alignment, music, render.
+The plugin sends no data about you or your app anywhere, and has no server
+of its own. It only downloads:
+
+- the engine's npm packages (`npm ci`, from the npm registry),
+- the caption fonts (Inter, Playfair Display, Anton) from Google Fonts at
+  render time, through `@remotion/google-fonts`,
+- the voice and alignment models from Hugging Face, the first time
+  mlx-audio loads them.
+
+The one exception is a TTS tool you choose and configure yourself as the
+`command` voice engine (for example a paid API). That tool receives the
+narration text under its own terms. Nothing uses it unless you set it up.
+
 ## Use
 
 Open your app's repo in Claude Code and ask for something like "make a
