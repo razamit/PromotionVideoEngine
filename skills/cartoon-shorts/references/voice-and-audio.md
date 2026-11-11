@@ -38,6 +38,13 @@ so the clone voices work in every short.
 | `heart` | Female, 192 Hz, bright and warm | A cheerful narrator against a grim situation, a change of pace | Trails off on some last words (line 5 of the bake-off); keep `"even": true` |
 | `turbo` | Lower take on the narrator's timbre, 146-174 Hz, flatter | When the narrator voice feels too bright for the story | Ran compounds together ("trashback"); check the transcript |
 | `voxclone` | The narrator's timbre with a different delivery, 190 Hz, flatter | A second take on the narrator for a quieter story | Ignores the seed, so a re-render changes the read; synthesise once and keep the cache |
+| `bella` | American woman, 199 Hz, a narrower pitch swing than `heart` (2.1 st) | A second female narrator when `heart` was the last one used | Level drops up to 15 dB on a last word without `"even": true` |
+| `emma` | British woman, 184 Hz | A polite British read of a mess; the "nature film" tone in a woman's voice | Nothing found; 0 Whisper errors on 28 lines |
+| `isabella` | British woman, 214 Hz, the highest of the British voices | A cheerful British narrator, lighter stories | Whisper heard "done" as "dunn" once; check the transcript |
+| `george` | British man, 149 Hz, a 4.3 semitone swing | A dry British storyteller; the closest British voice to `narrator` | Whisper heard "Sticky" as "Tiki": listen to the app name. Above speed 1.3 it drops the first word of a line, so the pace comes from `tempo` |
+| `fable` | Low British man, 119 Hz, the widest swing of the presets (5.0 st) | A storybook or fairy-tale framing | Needs `"trimDb": -40`: it leaves 0.45 s of hiss after every line. Whisper heard "then" as "than" once |
+| `heart-emma` | `heart` and `emma` averaged, 190 Hz: British pronunciation in a half-American timbre | When `emma` sounds too formal for the story | Nothing found; 0 Whisper errors on 28 lines |
+| `bella-isabella` | `bella` and `isabella` averaged, 208 Hz: British pronunciation in a half-American timbre | A voice no other Kokoro user has by default | Whisper heard "done" as "dunn" once without `even` |
 
 ```jsonc
 // narrator: Qwen3-TTS 1.7B Base cloning the series clip
@@ -52,10 +59,41 @@ so the clone voices work in every short.
   "refAudio": "voice/series_narrator.wav", "seed": 7, "options": { "sample_rate": 24000 }, "tempo": 1.13 }
 // voxclone: VoxCPM2 cloning the series clip
 { "engine": "mlx", "model": "mlx-community/VoxCPM2-bf16", "refAudio": "voice/series_narrator.wav", "seed": 7, "tempo": 1.17 }
+// bella: Kokoro-82M preset, American woman
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "af_bella", "lang": "a", "speed": 1.13, "even": true }
+// emma: Kokoro-82M preset, British woman
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "bf_emma", "lang": "b", "speed": 1.18, "even": true }
+// isabella: Kokoro-82M preset, British woman
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "bf_isabella", "lang": "b", "speed": 1.21, "even": true }
+// george: Kokoro-82M preset, British man
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "bm_george", "lang": "b", "speed": 1.25, "tempo": 1.1 }
+// fable: Kokoro-82M preset, British man
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "bm_fable", "lang": "b", "speed": 1.18, "trimDb": -40, "even": true }
+// heart-emma: two Kokoro presets averaged, British pronunciation
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "af_heart,bf_emma", "lang": "b", "speed": 1.15, "even": true }
+// bella-isabella: two Kokoro presets averaged, British pronunciation
+{ "engine": "mlx", "model": "mlx-community/Kokoro-82M-bf16", "voice": "af_bella,bf_isabella", "lang": "b", "speed": 1.18, "even": true }
 ```
 
+### Kokoro accents and blends
+
+A Kokoro voice has two parts. `voice` is the timbre: `af_` and `am_` are
+American women and men, `bf_` and `bm_` British. `lang` is the pronunciation:
+`"a"` reads the words the American way, `"b"` the British way. Keep them
+matched for a plain accent.
+
+Two or more presets joined with a comma (`"af_heart,bf_emma"`) are averaged
+into one new timbre. The blend reads with whatever `lang` says, so the two
+blends above speak British English in a voice that is half American. Mixing
+an `af_` voice into `"lang": "b"` prints a "Language mismatch" warning; that
+is expected.
+
+Kokoro's `speed` moves in steps, not smoothly: `bm_george` reads 207 wpm at
+1.33 and 226 at 1.36. If no value lands in the 205-225 band, hold `speed`
+lower and add a small `tempo`, as `george` does.
+
 `tempo` is the pace knob for the clones (ffmpeg `atempo`, pitch kept);
-Kokoro uses its own `speed`. Tune it until `npm run timeline` reports
+Kokoro uses its own `speed` (`george` uses both). Tune it until `npm run timeline` reports
 205-225 wpm. Keep `tempo` at 1.17 or under: the variants rejected by ear
 were mostly pushed to 1.2-1.35.
 
@@ -131,6 +169,37 @@ What the numbers said before listening (the roster above is the result of listen
   less push sounds more natural. Prefer a faster clip over a bigger tempo.
 - F0 spread is a crude proxy. Listening decided the roster.
 
+## Bake-off 2 (2026-11-11): British voices, more women, blends
+
+Seven Kokoro-82M voices, picked by ear from one-paragraph samples, then
+run over all 28 lines of episode 1 at the settings in the roster. Whisper
+large-v3-turbo transcribed every line.
+
+| Key | Script wpm | Whisper errors, 195 words | F0 median | F0 spread | Kokoro's own grade |
+|---|---|---|---|---|---|
+| `bella` | 214 | 0 | 199 Hz | 2.1 st | A- |
+| `emma` | 216 | 0 | 184 Hz | 2.5 st | B- |
+| `isabella` | 214 | 1 | 214 Hz | 2.2 st | C |
+| `george` | 209 | 1 | 149 Hz | 4.3 st | C |
+| `fable` | 215 | 1 | 119 Hz | 5.0 st | C |
+| `heart-emma` | 215 | 0 | 190 Hz | 2.8 st | blend |
+| `bella-isabella` | 212 | 0 | 208 Hz | 2.1 st | blend |
+
+What it found:
+
+- Every woman's voice sags on last words. `even` took the worst drop from
+  8-15 dB to 4-5 dB on all five, so all five carry it. `fable` carries it
+  too (12 dB to 3 dB once the hiss is trimmed).
+- `bm_fable` read at 169 wpm at speed 1.18 because each line ended in 0.45 s
+  of hiss at -44 dB, just over the -45 dB trim. With `"trimDb": -40` the same
+  speed gives 215 wpm and the gaps match the other voices.
+- `bm_george` at speed 1.33 dropped the first word of three lines ("It
+  pings" became "pings") and changed it on two more. At 1.25 with tempo 1.1
+  it dropped none.
+- The other British and American presets (`bf_alice`, `bf_lily`,
+  `bm_daniel`, `bm_lewis`, `af_nicole` and the rest) were not tried. Kokoro
+  grades most of them D; `af_nicole` (B-) is the next to try.
+
 ## The `mlx` engine
 
 `scripts/tts_mlx.py` runs inside the audio venv and loads the model once for
@@ -146,6 +215,7 @@ all lines that are not cached. Keys in the `voice` block:
 | `seed` | `mx.random.seed` before each line | Same line, same audio. VoxCPM2 ignores it |
 | `options` | passed as is | Any other generate() keyword |
 | `tempo` | ffmpeg `atempo` after trimming | Works for every engine except `file` |
+| `trimDb` | silence trim threshold, default -45 | Raise it (for example -40) for a voice that leaves hiss after each line; `fable` needs it |
 | `even` | compressor before levelling | Not part of the cache key; see "Levelling" |
 
 Lines are cached in `.cache/vo/<hash>.wav` (gitignored), keyed on the text,

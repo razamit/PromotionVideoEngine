@@ -27,9 +27,12 @@ const MAX_LINE_GAIN_DB = 24; // the `even` compressor alone takes about 12 dB of
 // level sags inside a line. On Kokoro af_heart it halves the drop on a trailing word.
 const EVEN_FILTER = "acompressor=threshold=-34dB:ratio=4:attack=3:release=150";
 const CACHE_VERSION = 1; // bump when trimming or post-processing changes
-const TRIM_SILENCE =
-  "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.03," +
-  "areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.06,areverse";
+// voice.trimDb raises the threshold for a voice that leaves hiss after each
+// line: Kokoro bm_fable holds -44 dB for 0.45 s, which reads as a long gap.
+const DEFAULT_TRIM_DB = -45;
+const trimSilence = (db) =>
+  `silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.03,` +
+  `areverse,silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.06,areverse`;
 
 // Friendly script.json keys -> generate() keyword names. voice.options passes anything else.
 const MLX_KEYS = {
@@ -67,8 +70,8 @@ export function durationOf(file) {
 }
 
 /** Trim leading and trailing silence; voice.tempo speeds the read up without changing pitch. */
-function toTrimmedWav(input, output, tempo) {
-  const filters = [TRIM_SILENCE];
+function toTrimmedWav(input, output, { tempo, trimDb }) {
+  const filters = [trimSilence(Number(trimDb ?? DEFAULT_TRIM_DB))];
   if (tempo && tempo !== 1) filters.push(`atempo=${Number(tempo).toFixed(3)}`);
   const partial = `${output}.part.wav`;
   run("ffmpeg", ["-v", "error", "-y", "-i", input, "-af", filters.join(","), "-ar", String(SAMPLE_RATE), "-ac", "1", partial]);
@@ -129,7 +132,7 @@ function synthesiseMlx(voice, items, options, cacheDir) {
   const seconds = reports.reduce((sum, r) => sum + r.seconds, 0);
   console.log(`voice: ${seconds.toFixed(1)}s of synthesis for ${items.length} line(s)`);
   lines.forEach((line, i) => {
-    toTrimmedWav(line.out, items[i].cached, voice.tempo);
+    toTrimmedWav(line.out, items[i].cached, voice);
     rmSync(line.out, { force: true });
   });
 }
@@ -139,7 +142,7 @@ function synthesiseMissing(voice, items, options, cacheDir) {
   for (const item of items) {
     const raw = item.cached.replace(/\.wav$/, ".raw.aiff");
     synthesiseOne(voice, item.text, raw, cacheDir);
-    toTrimmedWav(raw, item.cached, voice.tempo);
+    toTrimmedWav(raw, item.cached, voice);
     rmSync(raw, { force: true });
   }
 }
