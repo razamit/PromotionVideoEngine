@@ -136,11 +136,11 @@ repo; the lessons still apply.
 
 ## Working on the engine
 
-Clone this repo, then point the engine home at your checkout so edits apply
-straight away to every short on your machine:
+Clone this repo, then, from the root of your checkout, point the engine
+home at it so edits apply straight away to every short on your machine:
 
 ```bash
-bash skills/cartoon-shorts/scripts/ensure_engine.sh --link "$PWD/engine"
+bash skills/cartoon-shorts/scripts/ensure_engine.sh --link engine
 ```
 
 To ship a change, bump `version` in `.claude-plugin/plugin.json` and push.
