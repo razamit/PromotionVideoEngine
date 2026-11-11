@@ -38,14 +38,24 @@ const cell = (s) => String(s).replaceAll("|", "/");
 const groups = groupWords(timeline.words);
 const captures = new Set();
 
+// Serif captions (the toy style) show the whole line at once: as a title at
+// the top, as a line mid-frame, or not at all.
+const serif = timeline.captions?.style === "serif";
+function serifCaption(index, line) {
+  const role = timeline.lines?.[index]?.caption ?? "line";
+  if (role === "none") return "(none)";
+  const text = line.vo.replace(/\*([^*]+)\*/g, (_, word) => word.toUpperCase());
+  return role === "title" ? `TITLE: ${text}` : text;
+}
+
 const rows = script.lines.map((line, i) => {
   const shots = timeline.shots.filter((s) => s.lineIndex === i);
   const start = shots[0].start;
   const end = shots[shots.length - 1].end;
-  const caps = groups.filter((g) => g.start >= start - 0.01 && g.start < end).map((g) => g.text).join(" / ");
+  const caps = serif ? serifCaption(i, line) : groups.filter((g) => g.start >= start - 0.01 && g.start < end).map((g) => g.text).join(" / ");
   const shotText = shots.map((s) => `${s.scene} (${fmt(s.end - s.start)}s)`).join(", ");
   const camera = shots.map((s) => (s.camera?.move ?? "hold") + (s.enter && s.enter !== "cut" ? ` +${s.enter}` : "")).join(", ");
-  const app = shots.map((s) => s.params?.src).filter(Boolean);
+  const app = [...new Set(shots.flatMap((s) => [s.params?.phone?.src ?? s.params?.src, s.params?.callout?.src]).filter(Boolean))];
   app.forEach((a) => captures.add(a));
   return `| ${i + 1} | ${fmt(start)}-${fmt(end)} | ${cell(line.vo.replace(/\*/g, ""))} | ${cell(caps)} | ${cell(shotText)} | ${camera} | ${app.join(", ") || "-"} |`;
 });

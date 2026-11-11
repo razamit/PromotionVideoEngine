@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Start a new cartoon short in the current project.
-#   new_short.sh <slug> [dest_dir]
+#   new_short.sh [--style bean|toy] <slug> [dest_dir]
+# --style picks the starter: bean (default, the 2D bean characters, 45-60 s
+# story) or toy (3D toy figures in a lit set, 20-30 s, references/toy-style.md).
 # dest_dir defaults to <project>/<shortsDir>/<slug>, where <project> is the git
 # root of the current folder (or the folder itself) and shortsDir comes from
 # <project>/.cartoon-shorts/config.json ("shorts" if unset). It installs or
@@ -10,7 +12,14 @@
 # short's package.json, whose npm scripts run the engine from its stable home.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-SLUG="${1:?usage: new_short.sh <slug> [dest_dir]}"
+STYLE="bean"
+if [[ "${1:-}" == "--style" ]]; then STYLE="${2:?--style needs bean or toy}"; shift 2; fi
+case "$STYLE" in
+  bean) STARTER="example" ;;
+  toy) STARTER="example-toy" ;;
+  *) echo "unknown style: $STYLE (use bean or toy)" >&2; exit 1 ;;
+esac
+SLUG="${1:?usage: new_short.sh [--style bean|toy] <slug> [dest_dir]}"
 PROJECT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 CONFIG="$PROJECT/.cartoon-shorts/config.json"
 SHORTS_DIR="shorts"
@@ -25,7 +34,8 @@ bash "$HERE/ensure_engine.sh"
 ENGINE="$(bash "$HERE/ensure_engine.sh" --where)"
 
 mkdir -p "$DEST"
-rsync -a --exclude out --exclude .cache --exclude .public --exclude public/vo "$ENGINE/example/" "$DEST/"
+[[ -d "$ENGINE/$STARTER" ]] || { echo "the installed engine has no $STARTER starter; update the plugin" >&2; exit 1; }
+rsync -a --exclude out --exclude .cache --exclude .public --exclude public/vo --exclude node_modules "$ENGINE/$STARTER/" "$DEST/"
 (cd "$DEST" && node -e '
 const [slug] = process.argv.slice(1);
 const engine = "\"${CARTOON_SHORTS_HOME:-$HOME/.cache/cartoon-shorts}/engine/bin/short.mjs\"";
@@ -36,6 +46,6 @@ const pkg = { name: slug, private: true,
 require("fs").writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
 ' "$SLUG")
 printf 'out/\npublic/vo/\n.cache/\npublic/music/takes/\n.public/\nnode_modules\n' > "$DEST/.gitignore"
-echo "ready: $DEST"
+echo "ready: $DEST ($STYLE style)"
 [[ -x "${CARTOON_SHORTS_PY:-$HOME/.cache/cartoon-shorts/venv-audio/bin/python}" ]] || echo "note: no local TTS venv; npm run timeline will fall back to macOS say. Setup: references/voice-and-audio.md"
 echo "next: cd $DEST, edit script.json, then npm run timeline && npm run studio"

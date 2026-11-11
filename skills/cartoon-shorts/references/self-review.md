@@ -8,6 +8,8 @@ see a picture, so you look at the frames yourself.
 npm run check     # typecheck, then lint_shots.mjs: fix every ERROR, read every WARN
 npm run review    # out/review/sheet_NN.png, first_frame.png, shots.txt
 npm run bubbles   # out/bubblecheck/: every speech burst and sign, cut words flagged (exit 1)
+python3 <skill>/scripts/app_text_frames.py .           # after render + finish: out/textcheck/, one frame per app shot
+python3 <skill>/scripts/app_text_frames.py --check .   # exit 1 until every app shot says Readable? yes and Whole? yes
 ```
 
 `npm run review` reuses `out/short.mp4` when nothing in `src/`, `public/` or
@@ -23,7 +25,7 @@ safe zone from `src/layout/safeZone.ts` (top 12%, bottom 75%).
 
 Read every sheet with the Read tool, then `first_frame.png` at full size.
 Go through the list below and write down each miss with its `#N` and time.
-Fix, re-render, run both commands again. A WARN can stay only when you can
+Fix, re-render, run the commands again. A WARN can stay only when you can
 say why in the hand-over.
 
 ## The checklist
@@ -38,11 +40,37 @@ say why in the hand-over.
 
 **Picture**
 
-- [ ] Every app screen is readable at phone size (`python3 <skill>/scripts/app_text_frames.py <short folder>` pulls one frame per app shot into `out/textcheck/`; a rerun after a fix keeps the Verdict cells and notes already in `index.md`). Hold the sheet tile next
-      to a real phone screenshot in your head: if you cannot read the task
-      title on the tile, a viewer cannot read it on a 6-inch screen. Crop or
-      focus on the one element that matters (the notification, the Done
-      button), or fill the frame with the phone.
+- [ ] Every app screen is readable at phone size. `app_text_frames.py`
+      pulls one frame per app shot into `out/textcheck/`; fill the
+      **Readable?** cell of each row in its `index.md` with yes or no. Hold
+      the sheet tile next to a real phone screenshot in your head: if you
+      cannot read the task title on the tile, a viewer cannot read it on a
+      6-inch screen.
+- [ ] Every app element is whole. Same sheets, the **Whole?** cell. Under
+      each tile is the element cut from the capture itself, boxed in red:
+      that is what whole looks like. Compare it with the frame edge by edge.
+      Fails: a button missing from the end of a banner ("Snooze 10" gone, or
+      half of it), help text that runs off the phone's edge, a card whose
+      right-hand tag or menu is not there, a callout or phone the camera
+      pushes out of the frame. Open `shot_NN.png` at full size when the tile
+      leaves any doubt. No strip under a tile means the shot declares no
+      element; then name the element yourself and check its four edges.
+- [ ] Readable and whole hold together, on the same frame. They pull
+      against each other: zooming the phone makes text readable and narrows
+      what it shows (62% of the capture's width at 1.6x), and a banner, a
+      settings row or a task row is about 92% wide, so it fits only up to
+      about 1.07x. Never fix one by breaking the other. A narrow element
+      (one button, a title) can take a focus zoom, with its box declared in
+      `element`. A full-width element is lifted out of the phone at full
+      width: `params.callout` in a toy short (toy-style.md, "One element,
+      large and whole"), a `CaptureCard` crop in a bean short. `npm run
+      lint` fails a declared element that is cut (`cut-element`) and, in a
+      toy short, a zoomed phone that declares none (`no-element`);
+      `app_text_frames.py --check` must exit 0 before hand-over. (Missed
+      on 2026-11-10, the first toy short: five phone shots zoomed 1.6x to 2x
+      as the checklist then asked, every banner lost its Snooze button, and
+      lint, the sheets and both checklists passed, because each one asked
+      only whether the text was readable.)
 - [ ] Every speech burst and sign is whole: open every `out/bubblecheck/`
       sheet (one tile per appearance, labelled with its problems) and fill
       the Verdict column of its `index.md`. Fails: a letter outside its star
@@ -85,6 +113,12 @@ say why in the hand-over.
 - [ ] Every claim is on the allowed list in `.cartoon-shorts/app-series.md`. The
       lint flags "never", "always", "best", "#1"; read each one against the
       list, and check claims that use none of those words too.
+
+**Toy style**: the lint uses the toy limits by itself when script.json
+says `"style": "toy"`. Skip "the last line leads back into the first" (a
+toy short ends on its end card) and add the checks in toy-style.md,
+"Review additions". The readable and whole items above apply in full; the
+toy phone is small, so they are where a toy short fails first.
 
 Then the publishing checklist in `publishing.md`.
 

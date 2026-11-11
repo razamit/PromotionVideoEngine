@@ -81,10 +81,22 @@ export type ShotSpec = {
   hideCaptions?: boolean;
 };
 
+/**
+ * The look of a short. "bean" (default): 2D bean characters with ink outlines
+ * in a cel-shaded room, word-by-word captions. "toy": 3D toy figures in a lit
+ * set (src/toy/), one serif caption per line, shorter and calmer.
+ */
+export type ShortStyle = "bean" | "toy";
+
+/** How a line is captioned in the "serif" look: a big title at the top, a small line mid-frame, or nothing. */
+export type LineCaption = "title" | "line" | "none";
+
 export type ScriptLine = {
   /** Narration. Wrap a word in *stars* to colour its caption. */
   vo: string;
   shots: ShotSpec[];
+  /** Serif captions only. Default: "title" for the first line of a toy short, "line" for the rest. */
+  caption?: LineCaption;
   /** Seconds of silence after this line, overrides script.gapAfterLine. */
   gapAfter?: number;
 };
@@ -94,6 +106,15 @@ export type TimedWord = {
   start: number; // seconds
   end: number;
   emphasis: boolean;
+  /** Index of the script line the word belongs to. */
+  line?: number;
+};
+
+export type TimedLine = {
+  index: number;
+  start: number; // seconds
+  end: number;
+  caption: LineCaption;
 };
 
 export type TimedShot = ShotSpec & {
@@ -104,21 +125,31 @@ export type TimedShot = ShotSpec & {
 };
 
 /**
- * Caption look. "reference" (default) matches the style measured from a popular cartoon Shorts channel:
+ * Caption look. "reference" (default for bean shorts) matches the style measured from a popular cartoon Shorts channel:
  * white heavy sans about 76 px, thin outline plus hard shadow, fixed line at
  * 70.5% down, hard cut per word, no pop, no colour. "pop" is the louder
- * look: bigger, pop and tilt, emphasis words in yellow.
+ * look: bigger, pop and tilt, emphasis words in yellow. "serif" (default for
+ * toy shorts) shows one whole line at a time in a small italic serif, and
+ * title lines big at the top with the spoken word in the accent colour.
  */
 export type CaptionSpec = {
-  style?: "reference" | "pop";
-  /** Font size in px at 1080x1920. Default 76 (reference) or 136 (pop). */
+  style?: "reference" | "pop" | "serif";
+  /** Font size in px at 1080x1920. Default 76 (reference), 136 (pop) or 60 (serif lines). */
   size?: number;
-  /** Default vertical centre as a fraction of the frame. Default 0.705. */
+  /** Default vertical centre as a fraction of the frame. Default 0.705, or 0.56 for serif lines. */
   y?: number;
+  /** Serif: colour of the spoken word in a title and of *starred* words. Default a warm red. */
+  accent?: string;
+  /** Serif: font size of title lines. Default 98. */
+  titleSize?: number;
+  /** Serif: vertical centre of title lines. Default 0.2. */
+  titleY?: number;
 };
 
 export type Timeline = {
   title: string;
+  /** Default "bean". */
+  style?: ShortStyle;
   fps: number;
   durationInFrames: number;
   voFile: string | null;
@@ -129,6 +160,8 @@ export type Timeline = {
   /** Where the word times came from: forced alignment, the length-spread estimate, or both. */
   wordTiming?: "aligned" | "estimated" | "mixed";
   words: TimedWord[];
+  /** One entry per script line; older timelines have none. */
+  lines?: TimedLine[];
   shots: TimedShot[];
 };
 

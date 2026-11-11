@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile, useVideoConfig } from "remotion";
 import { CameraRig } from "../camera/CameraRig";
 import { DISSOLVE_FRAMES, ENTER_FRAMES } from "../camera/moves";
+import { SerifCaptions } from "../captions/SerifCaptions";
 import { WordCaptions } from "../captions/WordCaptions";
 import { sceneRegistry } from "@short/scenes/registry";
 import type { MusicSpec, TimedShot, TimedWord, Timeline } from "../timeline/types";
@@ -76,7 +77,11 @@ export function Short({ timeline }: { timeline: Timeline }) {
       ))}
       {timeline.voFile ? <Audio src={staticFile(timeline.voFile)} /> : null}
       {timeline.music ? <MusicBed music={timeline.music} words={timeline.words} /> : null}
-      <WordCaptions words={timeline.words} shots={timeline.shots} spec={timeline.captions} />
+      {timeline.captions?.style === "serif" && timeline.lines ? (
+        <SerifCaptions words={timeline.words} lines={timeline.lines} shots={timeline.shots} spec={timeline.captions} />
+      ) : (
+        <WordCaptions words={timeline.words} shots={timeline.shots} spec={timeline.captions} />
+      )}
     </AbsoluteFill>
   );
 }

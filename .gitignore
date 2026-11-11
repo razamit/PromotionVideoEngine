@@ -13,3 +13,9 @@ engine/example/out/
 engine/example/public/vo/
 engine/example/.cache/
 engine/example/.public/
+engine/example-toy/out/
+engine/example-toy/public/vo/
+engine/example-toy/.cache/
+engine/example-toy/.public/
+engine/example-toy/node_modules
+engine/example/node_modules

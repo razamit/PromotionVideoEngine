@@ -28,6 +28,7 @@ export const KIT_LEVELS: Record<string, number> = {
   "sfx/buzz_once.wav": 0.5,
   "sfx/ding.wav": 0.6,
   "sfx/swat.wav": 0.7,
+  "sfx/stamp.wav": 0.75,
   "sfx/fly_loop.wav": 0.25,
   "sfx/tap.wav": 0.6,
   "sfx/boing.wav": 0.55,

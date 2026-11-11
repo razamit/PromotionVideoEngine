@@ -73,9 +73,25 @@ src/scenes/textBoxAudit.ts   render-time check for SpeechBurst and Sign: logs wh
 src/scenes/demoScenes.tsx    the smoke-test scenes (RoomWithBag, PhoneReveal, PhoneFocus, CardReveal, EndCard)
 src/scenes/                  shared scene pieces (kit, speech bursts, demo scenes); each short has its own scenes/registry.ts
 src/theme/palette.ts         ink, outline width, cartoon palette, brand colours
+src/captions/SerifCaptions.tsx  the toy style's captions: a title at the top, one serif line mid-frame
+src/toy/                     the toy style (references/toy-style.md): 3D figures in a lit set
+  shapes.tsx                 Block, Pill, Ball, Drum, RoundDrum, Ring: soft matte meshes that cast shadows
+  stage/                     ToyStage (lights, soft shadows, fog, vignette), ToyCamera, the moods in lighting.ts
+  figure/                    ToyFigure, its head and body, cast, poses, walk and idle motion
+  props/                     room, bedroom, living room, outdoor, items
+  overlay/                   FloatingPhone, CaptureCallout, SoftTap, Stamp, Readout, Ticket, BrandEndCard, SceneOverlays
+  demoScenes.tsx             the starter scenes example-toy uses
+example-toy/                 the starter short new_short.sh --style toy copies
 ```
 
 ## How a frame is built
+
+This section and the cheat sheets below describe the bean style. A toy
+shot is simpler: one `ToyStage` (a single lit three.js scene holding the
+set and the figures) with flat overlays on top. The stage sits at depth 0,
+so the whole of the shot's script.json move is undone in 2D and applied to
+the three.js camera as a dolly and truck; overlays move with the rig at
+depth 1 like actors. See toy-style.md.
 
 Each shot is three layers inside one `CameraRig`:
 
@@ -352,6 +368,13 @@ take a minute or two.
 - A phone at 60% of the frame width makes app text about 12 px tall:
   unreadable on a phone. Every phone shot the VO talks about gets a
   `focus` zoom or a `CaptureCard` (see app-footage.md).
+- A `focus` zoom that makes a banner readable also cuts it: 1.6x shows 62%
+  of the capture's width and a banner is 92% wide. Zoom only on a narrow
+  element and declare its box in `element`; show a full-width one whole in
+  a `CaptureCard` or a toy `callout`. The lint's `cut-element` and
+  `no-element` rules (`scripts/lint_app_shots.mjs`) and
+  `app_text_frames.py --check` exist because the first toy short shipped
+  five cut banners past a readable-only review.
 - Text in the 3D world is hard to read and hard to set; put every label in
   the 2D layer with `Sign`.
 - Never animate a CSS transform scale to exactly 0 (`scaleY(0)` at frame 0):
@@ -360,5 +383,8 @@ take a minute or two.
   opacity. A single still of the same frame renders fine, so the cause looks
   like GPU contention when it is not (found on checklist-pro).
 - A hand item on a Bean must be SVG: use `HandPhone`, not `CartoonPhone`.
+- `engine/example/generated/timeline.json` and `example-toy`'s are
+  placeholders in git; `npm run timeline` writes the real one. Do not
+  commit a generated timeline over them.
 - An sfx path without `.wav` passes the typecheck and fails only at render
   with a 404; `npm run lint` now reports it as an error.
