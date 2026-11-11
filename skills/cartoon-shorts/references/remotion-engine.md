@@ -50,7 +50,8 @@ voice/series_narrator.*      shared voice reference for the clone voices
 scripts/paths.mjs            ENGINE vs SHORT paths for every script
 scripts/build_timeline.mjs   script.json -> public/vo.wav + generated/timeline.json
 scripts/review_table.mjs     timeline -> out/review.md, the approval table
-scripts/finish.sh            -14 LUFS, faststart, upload-ready mp4
+scripts/finish.sh            -14 LUFS, true peak checked on the encoded file, faststart, upload-ready mp4
+scripts/length_budget.mjs    the length window and word budget: the style's default or script.targetSeconds
 remotion.config.ts           ANGLE GL (needed for three.js), h264 crf 18
 src/Root.tsx                 one composition "Short", 1080x1920, 30 fps
 src/short/Short.tsx          a <Sequence> per shot + VO + music + captions

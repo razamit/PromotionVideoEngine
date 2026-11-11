@@ -18,6 +18,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { lengthBudget } from "./length_budget.mjs";
 import { SHORT, TIMELINE_FILE } from "./paths.mjs";
 import { durationOf, renderLineAudio, run } from "./voice_engines.mjs";
 import { alignLines, timeLineWords } from "./word_timing.mjs";
@@ -95,16 +96,35 @@ function layoutLines(script, measured) {
   return { words, lines, shots, files, gaps, spoken: cursor, alignedCount };
 }
 
-function report(script, words, shots, totalSeconds) {
+function report(script, budget, words, shots, totalSeconds) {
   const body = shots.slice(0, -1).filter((s) => !s.hideCaptions); // end card holds on purpose
   const longest = Math.max(0, ...body.map((s) => s.end - s.start));
   console.log(`${script.lines.length} lines, ${words.length} words, ${shots.length} shots`);
   console.log(`length ${totalSeconds.toFixed(1)}s, ${((words.length / totalSeconds) * 60).toFixed(0)} wpm, longest shot ${longest.toFixed(2)}s`);
-  const toy = script.style === "toy";
-  const maxShot = toy ? 2.6 : 2.2;
+  const maxShot = script.style === "toy" ? 2.6 : 2.2;
   if (longest > maxShot) console.log(`WARNING: a shot runs past ${maxShot}s; split it or give it a stronger camera move`);
-  if (toy && totalSeconds > 35) console.log("WARNING: over 35s; a toy short is 20-30s (references/toy-style.md)");
-  if (!toy && totalSeconds > 62) console.log("WARNING: over 62s; YouTube Shorts and the 45-60s target both want it shorter");
+  reportLength(budget, words.length, totalSeconds);
+}
+
+/** Stops before any voice is synthesised when script.targetSeconds is not a length. */
+function lengthBudgetOrExit(script) {
+  try {
+    return lengthBudget(script);
+  } catch (problem) {
+    console.error(`ERROR: ${problem.message}`);
+    process.exit(1);
+  }
+}
+
+/** Says how the length sits against the style's window, or against script.targetSeconds (length_budget.mjs). */
+function reportLength(budget, wordCount, totalSeconds) {
+  const window = `${budget.minSeconds}-${budget.maxSeconds}s, about ${budget.minWords}-${budget.maxWords} words`;
+  if (budget.requested) console.log(`target ${budget.aim}: ${window}`);
+  if (totalSeconds > budget.maxSeconds) {
+    console.log(`WARNING: over ${budget.maxSeconds}s with ${wordCount} words; the target is ${budget.aim} (${window}). Cut lines.`);
+  } else if (budget.requested && totalSeconds < budget.minSeconds) {
+    console.log(`WARNING: under ${budget.minSeconds}s with ${wordCount} words; the target is ${budget.aim} (${window}). Add lines.`);
+  }
 }
 
 function main() {
@@ -112,6 +132,7 @@ function main() {
   const script = JSON.parse(readFileSync(scriptPath, "utf8"));
   const voice = script.voice ?? { engine: "none" };
   const fps = script.fps ?? 30;
+  const budget = lengthBudgetOrExit(script);
   mkdirSync(VO_DIR, { recursive: true });
   mkdirSync(dirname(OUT_JSON), { recursive: true });
 
@@ -141,7 +162,7 @@ function main() {
     shots,
   };
   writeFileSync(OUT_JSON, JSON.stringify(timeline, null, 2));
-  report(script, words, shots, totalSeconds);
+  report(script, budget, words, shots, totalSeconds);
   if (files.length > 0) console.log(`word times: ${alignedCount} of ${measured.length} lines force-aligned`);
 }
 

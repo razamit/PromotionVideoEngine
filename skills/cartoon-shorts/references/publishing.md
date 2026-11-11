@@ -5,7 +5,7 @@
 Picture and sound:
 
 - [ ] 1080x1920, 30 fps, H.264 + AAC, `out/short_final.mp4` from `npm run finish`.
-- [ ] 50-60 s. Loudness printed by finish near -14 LUFS, peak at or under -1 dB.
+- [ ] The length the style or `targetSeconds` asks for (bean 50-60 s, toy 20-30 s). Loudness printed by finish near -14 LUFS, peak near -2 dBTP. Finish fails on its own above -1 dBTP.
 - [ ] Frame 0 is the hook image with the first caption (it doubles as the
       thumbnail on most feeds). No black or blank first frame.
 - [ ] No shot longer than about 2 s; no static app screen over 2 s.

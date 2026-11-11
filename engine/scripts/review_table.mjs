@@ -65,7 +65,7 @@ const seconds = timeline.durationInFrames / timeline.fps;
 const md = [
   `# ${script.title}`,
   "",
-  `${fmt(seconds)} s, ${words} words, ${timeline.shots.length} shots, voice: ${script.voice?.engine ?? "none"} (times move once the final voice is in).`,
+  `${fmt(seconds)} s${script.targetSeconds ? ` (target ${script.targetSeconds} s)` : ""}, ${words} words, ${timeline.shots.length} shots, voice: ${script.voice?.engine ?? "none"} (times move once the final voice is in).`,
   "",
   script.notes ? `Notes: ${script.notes}\n` : "",
   "| # | Time | VO | Captions | Shots | Camera | App capture |",

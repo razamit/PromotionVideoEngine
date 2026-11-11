@@ -1,6 +1,6 @@
 ---
 name: cartoon-shorts
-description: Make viral-format vertical cartoon shorts (TikTok, YouTube Shorts, Reels, 1080x1920) that promote an app, with the REAL app (screenshots or screen recordings) composited into a phone, in two house styles. Bean style (45-60 s) - 2D bean characters with thick outlines in a cel-shaded three.js world, a camera that moves every 1-2 seconds, one fast (about 215 wpm) second-person narrator, one-or-two-word captions, a music bed and sound effects, a twist and a loop. Toy style (20-30 s) - soft 3D toy figures in a lit set with shadows, a serif title and one caption line per thought, an analogy instead of a plot, the app on a floating phone, stamps and readouts, an end card with a call to action. Built on Remotion from a tested template. Use when asked for a cartoon short, an animated TikTok, Short or Reel, a promo video "like that viral cartoon one" or "like those 3D Claude videos", a story video for an app, a script or shot list for one, a new episode in the series, or to re-render, re-time or fix an existing short.
+description: Make viral-format vertical cartoon shorts (TikTok, YouTube Shorts, Reels, 1080x1920) that promote an app, with the REAL app (screenshots or screen recordings) composited into a phone, in two house styles. Bean style (45-60 s by default) - 2D bean characters with thick outlines in a cel-shaded three.js world, a camera that moves every 1-2 seconds, one fast (about 215 wpm) second-person narrator, one-or-two-word captions, a music bed and sound effects, a twist and a loop. Toy style (20-30 s by default) - soft 3D toy figures in a lit set with shadows, a serif title and one caption line per thought, an analogy instead of a plot, the app on a floating phone, stamps and readouts, an end card with a call to action. Either style can be made at another length on request. Built on Remotion from a tested template. Use when asked for a cartoon short, an animated TikTok, Short or Reel, a promo video "like that viral cartoon one" or "like those 3D Claude videos", a story video for an app, a script or shot list for one, a new episode in the series, or to re-render, re-time or fix an existing short.
 argument-hint: [idea or slug] [script|build|render]
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
@@ -66,7 +66,7 @@ the step needs:
 | | Bean (default) | Toy (`"style": "toy"`) |
 |---|---|---|
 | Look | 2D bean characters, ink outlines, cel-shaded room | 3D toy figures, soft light and shadows, no outlines |
-| Length | 45-60 s, about 215 wpm | 20-30 s, about 130-160 wpm |
+| Length | 45-60 s by default, about 215 wpm | 20-30 s by default, about 130-160 wpm |
 | Shape | A six-beat story with a twist and a loop | An analogy: what nobody skips, what you skip, the app closes the gap |
 | Captions | One or two heavy sans words at a time | A serif title for the hook, then one serif line per thought |
 | App | Late, as the twist, in a cartoon phone | Just before the middle, on a phone floating over the figure |
@@ -77,6 +77,15 @@ already uses (`.cartoon-shorts/app-series.md`, "Built"). One style per
 series: do not mix them on one account. The rest of this file describes the
 bean style; where the toy style differs, `references/toy-style.md` says how
 and wins.
+
+**Another length on request.** The lengths above are the defaults, each
+taken from its reference video. When the request names a length ("a 40
+second one", "make it 15 s"), set `"targetSeconds"` in script.json from the
+start: the timeline and the lint then hold the short to that length, give
+or take 15%, and print its word budget. The style keeps its pace and its
+shot rhythm; the script is written for the length ("Other lengths" in
+script-and-shots.md for bean, in toy-style.md for toy). Do not ask for a
+length when none was given; use the default.
 
 ## The non-negotiables
 
@@ -117,7 +126,8 @@ template"): the thing nobody skips, its stake, and the task the app covers.
 
 Follow `references/script-and-shots.md`: 185-215 words for 50-60 s, six
 beats, second person, present tense, last line loops into the first (toy:
-50-70 words for 20-30 s, the analogy template, no loop). Write
+50-70 words for 20-30 s, the analogy template, no loop). For a requested
+length, set `targetSeconds` and use the "Other lengths" row for it. Write
 it as `script.json` (VO lines with shots attached), then generate the
 review table with `npm run timeline && npm run table` (step 3): time, VO,
 caption groups, shots, camera, app captures. Mark which captures exist.
@@ -138,7 +148,8 @@ npm run music             # composes this episode's bed (ACE-Step) at its length
 
 `npm run timeline` prints the length, words per minute and longest shot.
 Aim for 50-60 s, 205-225 wpm, longest shot under 2.2 s (toy: 20-30 s,
-130-160 wpm, under 2.6 s). Pick the voice
+130-160 wpm, under 2.6 s). With `targetSeconds` set, it also prints the
+window and the word budget for that length. Pick the voice
 from the roster in `references/voice-and-audio.md` to suit the story (not
 the previous episode's voice unless the story wants it) and use it from the
 first run; `say` is only a fallback when the local TTS venv is missing.
@@ -182,7 +193,7 @@ npm run check                                          # typecheck + lint
 npm run review                                         # 0.4-scale preview, contact sheets every 0.5 s in out/review/
 npm run bubbles                                        # every speech burst and sign on a sheet, warns on cut words (out/bubblecheck/)
 npm run still -- out/check.png --frame=<n>             # full-size look at one frame
-npm run render && npm run finish                       # out/short_final.mp4, -14 LUFS, -2 dBTP
+npm run render && npm run finish                       # out/short_final.mp4, -14 LUFS, -2 dBTP; fails above -1 dBTP
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" .          # out/textcheck/: one frame per app shot, with the element it must show whole
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" --check .  # exit 1 until index.md says Readable? yes and Whole? yes on every row
 ```
