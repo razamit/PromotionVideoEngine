@@ -118,7 +118,7 @@ made the argument.
 
 | Item | Target |
 |---|---|
-| Length | 20-30 s (lint warns outside 18-35 s) |
+| Length | 20-30 s (lint warns outside 18-35 s) unless another length was asked for ("Other lengths" below) |
 | Words | 50-70 |
 | Pace | 130-160 wpm (lint warns outside 100-185) |
 | VO lines | 14-20, each 2-6 words |
@@ -127,6 +127,25 @@ made the argument.
 | Stamps, readouts, tickets | 3-5 in all |
 | Sound effects | 4-8: a stamp thud on each stamp, a ding when the app enters, the end card |
 | Light | one turn, at the reward beat |
+
+## Other lengths
+
+20-30 s is the default because the reference is 24 s. When the request
+names a length, set `"targetSeconds"` in script.json; the timeline and the
+lint then check against that number, give or take 15%. The pace stays
+130-160 wpm and a setup still changes about every 1.7 s. A longer toy
+short needs more argument, not the same 60 words read slowly.
+
+| targetSeconds | Words | VO lines | Shots | Shape |
+|---|---|---|---|---|
+| 15 | 33-40 | 8-11 | 8-10 | Hook, the gap, the app in two screens, end card. No callback |
+| 25 (default) | 50-70 | 14-20 | 12-18 | The analogy template |
+| 45 | 98-120 | 26-34 | 24-30 | Two analogies for the same gap, or one analogy and the mechanic shown on two of the viewer's tasks. 6-8 real screens, one light turn |
+| 60 | 130-160 | 34-44 | 32-40 | Three examples of "nobody skips this" in quick succession, then the gap, then the mechanic in full. 8-10 real screens |
+
+Only the default has a reference behind it; the other rows are scaled
+from it and untested until one is made. The app still enters at 40-50% of
+the runtime at any length.
 
 ## The analogy template
 

@@ -8,7 +8,7 @@ script.json format below is shared.
 
 | Item | Target |
 |---|---|
-| Length | 50-60 s (hard ceiling 62 s) |
+| Length | 50-60 s unless another length was asked for ("Other lengths" below) |
 | Words | 185-215 (about 215 wpm; the reference measures 201-224) |
 | Pace | 205-225 wpm, flat to the end (`npm run timeline` reports it) |
 | Pauses | 0.15-0.25 s between sentences, none longer; the twist lands on a short sentence, not a silence |
@@ -17,6 +17,30 @@ script.json format below is shared.
 | Sound effects | 8-14, on physical beats (format-recipe.md, Measured) |
 | Running gag | appears 2-3 times |
 | Labelled props | 6-12 across the short |
+
+## Other lengths
+
+50-60 s is the default because the reference is 60 s. When the request
+names a length, set `"targetSeconds"` in script.json. The timeline and the
+lint then check the length against that number, give or take 15%, and
+print the word budget for it. The pace (205-225 wpm) and the shot rhythm
+(a new setup about every 1.6 s) do not change with the length. The story
+does: a different length is a different script, never the same one read
+slower or cut off.
+
+| targetSeconds | Words | VO lines | Shots | Shape |
+|---|---|---|---|---|
+| 20 | 68-75 | 10-14 | 12-16 | Four beats: hook, the problem in one image, the app, the payoff. No running gag, no setup |
+| 30 | 103-113 | 15-20 | 18-24 | Five beats: hook, setup, one consequence, the app as the twist, CTA and loop. The gag appears once |
+| 45 | 154-169 | 23-30 | 28-36 | All six beats, with a two-step escalation |
+| 55 (default) | 185-215 | 28-40 | 35-50 | The six beats below |
+| 90 | 308-338 | 45-60 | 55-70 | Six beats, a second escalation after the reveal (you try to dodge the app and it holds), 2 more app screens, 14-20 sound effects |
+
+Only the default has a reference video behind it. The other rows are
+scaled from it and untested until a short is made at that length, so say
+so in the hand-over. YouTube Shorts takes up to 3 minutes (checked
+2026-11-11); the lint warns above 180 s. Check Reels' and TikTok's current
+limits before posting anything over 90 s.
 
 ## Writing the narration
 
@@ -105,6 +129,9 @@ Fields:
 - `voice`: see voice-and-audio.md.
 - `style`: `"bean"` (default) or `"toy"`. Toy switches the lint limits and
   the caption default (toy-style.md).
+- `targetSeconds`: the length that was asked for, in seconds. Leave it out
+  for the style's default ("Other lengths" above; toy-style.md, "Other
+  lengths").
 - `lines[].caption`: serif captions only: `title`, `line` or `none`.
 
 ## Review table (what the channel owner sees before anything is built)

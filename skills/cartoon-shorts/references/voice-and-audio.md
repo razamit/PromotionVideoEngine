@@ -290,3 +290,12 @@ See `references/music-and-sfx.md`.
 LUFS integrated, -2 dBTP, which matches the reference and where TikTok,
 Shorts and Reels normalise. It prints the measured result; episode 1 v3
 came out at -14.0 LUFS, -2.0 dBTP.
+
+The peak is measured on the encoded AAC, because the encoder can add
+peaks the levelled audio does not have. A short with a square-wave music
+bed was levelled to -2.0 dBTP and came out of the 192k encode at +0.3 dBTP
+(2026-11-11). So finish encodes the audio on its own and measures it. Over
+-1.7 dBTP it encodes again at 256k, then at 256k and 320k under a limiter,
+and keeps the first one that holds; the printed line names the setting it
+used. When no attempt gets under -1 dBTP it writes nothing and exits with
+an error: lower the bed or the effects in the mix and render again.

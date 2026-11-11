@@ -3,13 +3,16 @@
 // cut, before anything is rendered: repeated angles, long or static shots, a
 // weak first frame, captions under the platform UI, app screens that cannot
 // be read or that cut the element they show (lint_app_shots.mjs), no sound
-// effects, length and pace, em dashes and risky claim words.
+// effects, length and pace, em dashes and risky claim words. The length
+// window comes from the style, or from script.json "targetSeconds"
+// (length_budget.mjs).
 // Every finding names the shot (timeline index, as in `npm run review`), its
 // start time and a fix. Exit code 1 only when there are errors.
 // Usage: node scripts/lint_shots.mjs [script.json]
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { LONGEST_SHORT_SECONDS, lengthBudget, scaledLimit } from "./length_budget.mjs";
 import { checkAppShots } from "./lint_app_shots.mjs";
 import { ENGINE, SHORT, TIMELINE_FILE, publicFile } from "./paths.mjs";
 
@@ -19,8 +22,6 @@ const SAFE_ZONE_FILE = join(ENGINE, "src", "layout", "safeZone.ts");
 const LIMITS = {
   maxShotSeconds: 2.2,
   maxFirstShotSeconds: 1.5,
-  minSeconds: 45,
-  maxSeconds: 62,
   minWpm: 195,
   maxWpm: 230,
   minPhoneHeight: 1500,
@@ -34,13 +35,11 @@ const LIMITS = {
   frameHeight: 1920,
 };
 // The toy style (script.style "toy", references/toy-style.md) is a shorter,
-// calmer format: 20-30 s, a line of caption per thought, shots that may hold
-// a little longer. These replace the limits above for such a short.
+// calmer format: a line of caption per thought, shots that may hold a little
+// longer. These replace the limits above for such a short.
 const TOY_LIMITS = {
   maxShotSeconds: 2.6,
   maxFirstShotSeconds: 2.6,
-  minSeconds: 18,
-  maxSeconds: 35,
   minWpm: 100,
   maxWpm: 185,
   minPhoneHeight: 1200,
@@ -269,12 +268,34 @@ function checkSfxFiles(timeline) {
   }
 }
 
-function checkLengthAndPace(timeline) {
+/** A targetSeconds that is not a length is an error; the rest of the lint then runs on the style's own window. */
+function readLengthBudget(script) {
+  try {
+    return lengthBudget(script);
+  } catch (problem) {
+    add("error", "length", "targetSeconds", problem.message, 'write it as a number, such as "targetSeconds": 40, or remove it');
+    return lengthBudget({ style: script.style });
+  }
+}
+
+/** The length window and the repeat limits for this short: the style's own, or scaled to script.targetSeconds. */
+function applyLengthBudget(script) {
+  const budget = readLengthBudget(script);
+  LIMITS.maxAngleRepeats = scaledLimit(LIMITS.maxAngleRepeats, budget);
+  LIMITS.maxSceneUses = scaledLimit(LIMITS.maxSceneUses, budget);
+  if (budget.requested && budget.targetSeconds > LONGEST_SHORT_SECONDS) {
+    add("warn", "length", "targetSeconds", `${budget.targetSeconds}s is over ${LONGEST_SHORT_SECONDS}s, the longest YouTube Short`,
+      "shorten it, or check each platform's current limit before posting (publishing.md)");
+  }
+  return budget;
+}
+
+function checkLengthAndPace(timeline, budget) {
   const seconds = timeline.durationInFrames / timeline.fps;
   const wpm = (timeline.words.length / seconds) * 60;
-  if (seconds < LIMITS.minSeconds || seconds > LIMITS.maxSeconds) {
-    add("warn", "length", "whole short", `${seconds.toFixed(1)}s, outside ${LIMITS.minSeconds}-${LIMITS.maxSeconds}s`,
-      `cut or add lines; ${LIMITS.minSeconds < 30 ? "20-30s" : "50-60s"} is the target`);
+  if (seconds < budget.minSeconds || seconds > budget.maxSeconds) {
+    add("warn", "length", "whole short", `${seconds.toFixed(1)}s, outside ${budget.minSeconds}-${budget.maxSeconds}s`,
+      `cut or add lines; ${budget.aim} is the target, about ${budget.minWords}-${budget.maxWords} words${budget.requested ? ' (script.json "targetSeconds")' : ""}`);
   }
   if (wpm < LIMITS.minWpm || wpm > LIMITS.maxWpm) {
     add("warn", "pace", "whole short", `${wpm.toFixed(0)} wpm, outside ${LIMITS.minWpm}-${LIMITS.maxWpm}`,
@@ -319,6 +340,7 @@ function main() {
   const timeline = readJson(TIMELINE_FILE, "timeline (run `npm run timeline`)");
   const shots = timeline.shots;
   if ((script.style ?? timeline.style) === "toy") Object.assign(LIMITS, TOY_LIMITS);
+  const budget = applyLengthBudget({ ...script, style: script.style ?? timeline.style });
   const zone = loadSafeZone();
   checkFreshness(script, timeline);
   checkHook(shots);
@@ -328,11 +350,11 @@ function main() {
   checkCaptionZone(timeline, zone);
   checkAppShots(shots, { limits: LIMITS, add, tag, zone });
   checkSfx(timeline);
-  const { seconds, wpm } = checkLengthAndPace(timeline);
+  const { seconds, wpm } = checkLengthAndPace(timeline, budget);
   checkText(script, timeline);
   printFindings();
   const errors = findings.filter((f) => f.level === "error").length;
-  console.log(`\n${shots.length} shots, ${seconds.toFixed(1)}s, ${wpm.toFixed(0)} wpm, safe zone ${zone.top.toFixed(2)}-${zone.bottom.toFixed(2)} (${zone.source})`);
+  console.log(`\n${shots.length} shots, ${seconds.toFixed(1)}s (target ${budget.aim}), ${wpm.toFixed(0)} wpm, safe zone ${zone.top.toFixed(2)}-${zone.bottom.toFixed(2)} (${zone.source})`);
   console.log(`${errors} errors, ${findings.length - errors} warnings`);
   process.exit(errors > 0 ? 1 : 0);
 }

@@ -103,7 +103,7 @@ say why in the hand-over.
 
 - [ ] Sound effects on every whip and zoom, on crashes, on the phone buzz
       and on the key action (the swipe, the tap on Done).
-- [ ] `npm run finish` printed about -14 LUFS and a peak at or under -1 dB.
+- [ ] `npm run finish` printed about -14 LUFS and a peak near -2 dBTP (it stops with an error above -1 dBTP).
 
 **Words and truth**
 

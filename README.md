@@ -13,6 +13,9 @@ screenshots and screen recordings. Two house styles:
   plot, the app on a phone floating over the figure, stamps and readouts,
   and an end card with a button. Ask for "a toy-style short".
 
+Those lengths are the defaults. Ask for another one ("a 40 second toy
+short") and the script is written and checked for that length.
+
 This 60-second short is about the plugin, and the plugin made it:
 
 https://github.com/user-attachments/assets/9539f62e-52ba-4a17-adec-a7b30ab1adae
