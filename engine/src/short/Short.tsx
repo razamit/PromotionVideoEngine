@@ -17,7 +17,7 @@ import { placeAllCues, type PlacedCue } from "./sfx";
 // A shot followed by a dissolve, whip or zoomBlur keeps playing a few frames
 // longer, under the next shot as it enters, so a transition never shows
 // black; later Sequences paint on top.
-function ShotView({ shot, next, fps }: { shot: TimedShot; next?: TimedShot; fps: number }) {
+export function ShotView({ shot, next, fps }: { shot: TimedShot; next?: TimedShot; fps: number }) {
   const Scene = sceneRegistry[shot.scene];
   if (!Scene) throw new Error(`Scene "${shot.scene}" is not in the short's scenes/registry.ts`);
   const from = Math.round(shot.start * fps);

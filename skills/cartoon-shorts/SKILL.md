@@ -1,6 +1,6 @@
 ---
 name: cartoon-shorts
-description: "Make viral-format vertical cartoon shorts (TikTok, YouTube Shorts, Reels, 1080x1920) that promote an app, with the REAL app (screenshots or screen recordings) composited into a phone, in two house styles. Bean style (45-60 s by default) - 2D bean characters with thick outlines in a cel-shaded three.js world, a camera that moves every 1-2 seconds, one fast (about 215 wpm) second-person narrator, one-or-two-word captions, a music bed and sound effects, a twist and a loop. Toy style (20-30 s by default) - soft 3D toy figures in a lit set with shadows, a serif title and one caption line per thought, an analogy instead of a plot, the app on a floating phone, stamps and readouts, an end card with a call to action. Either style can be made at another length on request. Built on Remotion from a tested template. Use when asked for a cartoon short, an animated TikTok, Short or Reel, a promo video \"like that viral cartoon one\" or \"like those 3D Claude videos\", a story video for an app, a script or shot list for one, a new episode in the series, or to re-render, re-time or fix an existing short."
+description: "Make viral-format vertical cartoon shorts (TikTok, YouTube Shorts, Reels, 1080x1920) that promote an app, with the REAL app (screenshots or screen recordings) composited into a phone, in two house styles. Bean style (45-60 s by default) - 2D bean characters with thick outlines in a cel-shaded three.js world, a camera that moves every 1-2 seconds, one fast (about 215 wpm) second-person narrator, one-or-two-word captions, a music bed and sound effects, a twist and a loop. Toy style (20-30 s by default) - soft 3D toy figures in a lit set with shadows, a serif title and one caption line per thought, an analogy instead of a plot, the app on a floating phone, stamps and readouts, an end card with a call to action. Either style can be made at another length on request. Built on Remotion from a tested template. Use when asked for a cartoon short, an animated TikTok, Short or Reel, a promo video \"like that viral cartoon one\" or \"like those 3D Claude videos\", a story video for an app, a script or shot list for one, a new episode in the series, or to re-render, re-time or fix an existing short. Also has a slideshow mode for any product: TikTok photo-mode slideshows (4 to 8 swipeable still slides from real product screenshots, in six formats, with the caption, pinned comment and a publisher pack) built from a product brief. Use it when asked for a TikTok slideshow, a photo-mode post, a photo carousel, or slides for TikTok."
 argument-hint: "[idea or slug] [script|build|render]"
 ---
 
@@ -58,7 +58,51 @@ the step needs:
 | `references/music-and-sfx.md` | The house sound-effects kit, auto cues, composing a bed per episode, rights |
 | `references/self-review.md` | The checklist run on the review sheets before hand-over |
 | `references/publishing.md` | Final checks, platform disclosure toggles, the `social_text.md` post text per platform |
+| `references/intake-questions.md` | The questions to ask before making anything, for shorts and slideshows, and how a batch is planned |
+| `references/slideshow-mode.md` | Slideshow mode: TikTok photo posts for any product, from a product brief. For a slideshow, read it and `intake-questions.md`; none of the references above are needed |
+| `references/slideshow-formats.md` | The six slideshow formats and when to use each |
+| `references/slideshow-research.md` | TikTok's photo-post specs and what works, with sources: why slideshow mode's defaults are what they are |
 | `.cartoon-shorts/app-series.md` (in the project) | This app's facts the script may claim, the house cast, the backlog, the built episodes |
+
+## First: ask what is open
+
+Before a short or a slideshow, ask the person what the request did not
+already say, in one go: **how many** first, then style or format, look or
+length, and topic. When they want more than one, every question offers a
+mix, so a batch comes out varied. A request that already answers
+everything gets no questions. The questions, the choices and how to spread
+a mix: `references/intake-questions.md`. For a batch, show one plan table
+and get one approval instead of stopping on every item.
+
+## Slideshow mode (TikTok photo posts)
+
+A request for a **TikTok slideshow, photo-mode post or photo carousel** is
+not a short. It makes 4 to 8 still slides from real product screenshots,
+plus the post text, for a person to upload as a native photo post. It works
+for any product: everything product-specific comes from a brief at
+`.cartoon-shorts/product-brief.md`, and nothing in the engine names one.
+Invoke phrase: "make a TikTok slideshow for [product] about [topic] in the
+[format] format".
+
+Follow `references/slideshow-mode.md` from start to finish and skip the
+rest of this file: no story pitches, voice, music or scenes. A request to
+make a slideshow **from a short** ("a slideshow from the dry-cleaner
+short") uses that short's script, captures and frames as the material:
+slideshow-mode.md, "From a short". The short
+version:
+
+```bash
+bash "${CLAUDE_SKILL_DIR}/scripts/new_slideshow.sh" --format <format> <slug>
+cd <slideshowsDir>/<product>/<slug>      # write slideshow.md, then:
+npm run check && npm run guides && npm run render
+```
+
+The non-negotiables below that still apply to a slideshow: the app on
+screen is real (1), claims are true (2), post nothing (7). A missing
+screenshot stops that slide; it is never mocked. A slideshow can use the
+cartoon look: a frame from one of the product's shorts (`scene:`) or the
+house character (`character:`) behind the words, while every product
+screen stays a real capture.
 
 ## Two styles
 
@@ -71,9 +115,10 @@ the step needs:
 | App | Late, as the twist, in a cartoon phone | Just before the middle, on a phone floating over the figure |
 | Ending | Soft: name and "link in bio" | A brand card with a button |
 
-Ask which one when the request does not say, and say which the series
-already uses (`.cartoon-shorts/app-series.md`, "Built"). One style per
-series: do not mix them on one account. The rest of this file describes the
+The style is one of the intake questions when the request does not say;
+tell the person which the series already uses
+(`.cartoon-shorts/app-series.md`, "Built"). A series keeps one style unless
+the person picks a mix for a batch; a single short never mixes them. The rest of this file describes the
 bean style; where the toy style differs, `references/toy-style.md` says how
 and wins.
 
@@ -83,8 +128,9 @@ second one", "make it 15 s"), set `"targetSeconds"` in script.json from the
 start: the timeline and the lint then hold the short to that length, give
 or take 15%, and print its word budget. The style keeps its pace and its
 shot rhythm; the script is written for the length ("Other lengths" in
-script-and-shots.md for bean, in toy-style.md for toy). Do not ask for a
-length when none was given; use the default.
+script-and-shots.md for bean, in toy-style.md for toy). Length is one of
+the intake questions; when it is not asked or the answer is "each style's
+own length", use the default.
 
 ## The non-negotiables
 
@@ -106,13 +152,18 @@ length when none was given; use the default.
    key prop has a taped-on label.
 6. **One house style per series.** Same characters, palette and caption
    look in every episode of a series, bean or toy. The channel's look is
-   its logo.
+   its logo. The exception is a batch where the person asked for a mix of
+   styles (intake-questions.md); even then each short is one style
+   throughout.
 7. **Post nothing.** Render to disk and report paths. Posting is the
    channel owner's call.
 
 ## Workflow
 
 ### 1. Pick the story (stop for approval)
+
+For a batch, the plan table from the intake step stands in for this stop:
+one logline per short, approved together (intake-questions.md).
 
 Write three loglines in this shape: *one place, one person (you), one absurd
 rule or problem*, ending in a twist the app makes possible. Check the
@@ -193,6 +244,7 @@ npm run review                                         # 0.4-scale preview, cont
 npm run bubbles                                        # every speech burst and sign on a sheet, warns on cut words (out/bubblecheck/)
 npm run still -- out/check.png --frame=<n>             # full-size look at one frame
 npm run render && npm run finish                       # out/short_final.mp4, -14 LUFS, -2 dBTP; fails above -1 dBTP
+npm run frames                                         # frames/: a handful of caption-free scene frames, kept for slideshows
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" .          # out/textcheck/: one frame per app shot, with the element it must show whole
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" --check .  # exit 1 until index.md says Readable? yes and Whole? yes on every row
 ```
@@ -207,6 +259,13 @@ Fix, re-run `npm run review`, repeat. Then check `references/publishing.md`.
 A 55 s short renders in about a minute on an Apple Silicon Mac.
 
 ### 7. Hand over
+
+Run `npm run frames` once the render is final: it saves a handful of
+caption-free frames of the scenes in `frames/` (with an index and a contact
+sheet), which is what a slideshow made from this short draws on. Keep that
+folder when the short is trimmed after release. An older short whose
+package.json has no `frames` script runs it as
+`node "$(bash "${CLAUDE_SKILL_DIR}/scripts/ensure_engine.sh" --where)/bin/short.mjs" frames`.
 
 Write `social_text.md` in the short's folder first (publishing.md, "Links
 and copy"): every final render ships with one, no exceptions. Then report

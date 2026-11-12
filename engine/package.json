@@ -5,9 +5,12 @@
   "description": "The shared Remotion engine behind the cartoon-shorts Claude Code plugin. Each short runs it through its own package.json (bin/short.mjs).",
   "dependencies": {
     "@react-three/fiber": "9.8.2",
+    "@remotion/bundler": "4.0.536",
     "@remotion/cli": "4.0.536",
     "@remotion/google-fonts": "4.0.536",
+    "@remotion/renderer": "4.0.536",
     "@remotion/three": "4.0.536",
+    "js-yaml": "4.3.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remotion": "4.0.536",

@@ -6,7 +6,7 @@
 //   node engine/bin/short.mjs <command> [args...]   (from inside a short)
 //
 // Commands: timeline, table, music, lint, typecheck, check, studio, still,
-// render, finish, review, bubbles, and remotion (pass-through to the Remotion
+// render, finish, review, bubbles, frames, and remotion (pass-through to the Remotion
 // CLI with the short wired in: `npm run remotion -- still Short out/f.png --frame=90`).
 
 import { spawnSync } from "node:child_process";
@@ -120,6 +120,8 @@ const commands = {
   review: (a) => bash("review_frames.sh", a),
   bubbles: (a) => bash("bubble_check.sh", a),
   remotion: (a) => remotion(a),
+  // Caption-free frames of this short's scenes, saved in frames/ for slideshows (scripts/slideshow/scene_frames.mjs).
+  frames: (a) => node(join("slideshow", "scene_frames.mjs"), [`--public-dir=${mergedPublicDir()}`, ...a]),
 };
 
 const [command, ...args] = process.argv.slice(2);

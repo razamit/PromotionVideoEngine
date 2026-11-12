@@ -1,10 +1,10 @@
 {
   "name": "cartoon-shorts",
-  "version": "1.2.2",
-  "description": "Make vertical cartoon shorts (TikTok, YouTube Shorts, Reels) that promote your app, with the real app on screen, in two styles: 2D bean story shorts and 3D toy-figure shorts. A Remotion + three.js engine plus a step-by-step skill: story, script, voice, captures, scenes, review, render and post text.",
+  "version": "1.3.0",
+  "description": "Make vertical cartoon shorts (TikTok, YouTube Shorts, Reels) that promote your app, with the real app on screen, in two styles: 2D bean story shorts and 3D toy-figure shorts. A Remotion + three.js engine plus a step-by-step skill: story, script, voice, captures, scenes, review, render and post text. Also makes TikTok photo-mode slideshows for any product from a product brief and real screenshots, on their own or from a finished short.",
   "author": { "name": "Amit Raz", "url": "https://github.com/razamit" },
   "homepage": "https://github.com/razamit/PromotionVideoEngine",
   "repository": "https://github.com/razamit/PromotionVideoEngine",
   "license": "MIT",
-  "keywords": ["video", "remotion", "shorts", "tiktok", "marketing", "animation"]
+  "keywords": ["video", "remotion", "shorts", "tiktok", "slideshow", "marketing", "animation"]
 }

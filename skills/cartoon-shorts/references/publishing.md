@@ -25,6 +25,11 @@ Truth and privacy:
 - [ ] Nothing still on draft assets (voice, old captures) unless the
       hand-over says so.
 
+Slideshow material:
+
+- [ ] `frames/` exists (`npm run frames`): caption-free frames of the scenes,
+      so this short can feed slideshows, also after it is trimmed.
+
 Post text:
 
 - [ ] `social_text.md` exists beside `script.json` and matches this render

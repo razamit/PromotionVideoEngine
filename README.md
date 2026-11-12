@@ -26,6 +26,20 @@ roster's twelve voices read it in turn (`fable`, `emma`, `george` and the
 
 https://github.com/user-attachments/assets/14a7e5a4-eb1c-4a88-bcdf-51f20693dc6d
 
+It also makes **TikTok photo-mode slideshows** for any product: 4 to 8
+swipeable still slides built from real screenshots and a product brief, in
+six formats (a list of fixes, a problem-to-fix story, a reveal, before and
+after, a how-to, a relatable moment), with the caption, a pinned comment and
+a pack for whoever uploads. A slideshow can also take the cartoon look: a
+frame from one of your shorts or the house character behind the words,
+with the product screens still real. A finished short saves a handful of
+caption-free frames (`npm run frames`), and "make a slideshow from the short
+[slug]" builds one from that short's script, captures and frames. Ask for "a TikTok slideshow for
+[product] about [topic] in the [format] format". Before it makes anything,
+the skill asks what your request left open (how many, which style or
+format, which look, what about), and offers a mix when you want a batch. It renders images and text to disk and
+never posts. Details: `skills/cartoon-shorts/references/slideshow-mode.md`.
+
 It's a [Claude Code](https://claude.com/claude-code) plugin with two parts:
 
 - **The engine** (`engine/`): a Remotion 4 + three.js project that renders
@@ -83,8 +97,9 @@ The plugin sends no data about you or your app anywhere, and has no server
 of its own. It only downloads:
 
 - the engine's npm packages (`npm ci`, from the npm registry),
-- the caption fonts (Inter, Playfair Display, Anton) from Google Fonts at
-  render time, through `@remotion/google-fonts`,
+- the caption fonts (Inter, Playfair Display, Anton, and TikTok Sans for
+  slideshows) from Google Fonts at render time, through
+  `@remotion/google-fonts`,
 - the voice and alignment models from Hugging Face, the first time
   mlx-audio loads them.
 

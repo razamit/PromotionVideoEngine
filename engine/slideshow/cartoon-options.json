@@ -1,0 +1,17 @@
+{
+  "gestures": {
+    "rest": {},
+    "armsUp": { "armL": 150, "armR": 150, "bend": 0.2 },
+    "shrug": { "armL": 48, "armR": 48, "bend": -1 },
+    "wave": { "armR": 155, "bend": 0.3 },
+    "point": { "armR": 95, "bend": 0 },
+    "slump": { "armL": 2, "armR": 2, "bend": 0.7 },
+    "handsOnHead": { "armL": 165, "armR": 165, "bend": 0.9 }
+  },
+  "backdrops": {
+    "cool": { "wall": "wallCool", "floor": "floorBlue" },
+    "mint": { "wall": "wallMint", "floor": "floorWood" },
+    "warm": { "wall": "wallWarm", "floor": "floorWood" },
+    "night": { "wall": "nightBlue", "floor": "nightPurple" }
+  }
+}

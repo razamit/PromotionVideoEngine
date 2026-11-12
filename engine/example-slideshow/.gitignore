@@ -1,0 +1,9 @@
+out/
+.public/
+generated/
+slides/
+slides-clean/
+pack.md
+overlay_text.md
+missing.md
+preview-for-review-only.mp4

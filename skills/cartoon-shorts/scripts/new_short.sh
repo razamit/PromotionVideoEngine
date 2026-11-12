@@ -39,7 +39,7 @@ rsync -a --exclude out --exclude .cache --exclude .public --exclude public/vo --
 (cd "$DEST" && node -e '
 const [slug] = process.argv.slice(1);
 const engine = "\"${CARTOON_SHORTS_HOME:-$HOME/.cache/cartoon-shorts}/engine/bin/short.mjs\"";
-const cmds = ["timeline","table","music","lint","typecheck","check","studio","still","render","finish","review","bubbles","remotion"];
+const cmds = ["timeline","table","music","lint","typecheck","check","studio","still","render","finish","review","bubbles","frames","remotion"];
 const pkg = { name: slug, private: true,
   description: "One cartoon short. Runs on the shared cartoon-shorts engine (installed by the cartoon-shorts Claude Code plugin).",
   scripts: Object.fromEntries(cmds.map((c) => [c, `node ${engine} ${c}`])) };
