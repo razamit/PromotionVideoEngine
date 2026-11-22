@@ -193,8 +193,22 @@ the first window over it, so 30-40 ms before the first word, and 60 ms after
 the last) and cuts with `atrim`, which never
 alters a sample. After the fix no line has a spike at the cut, and the
 strongest spike left in a line is a consonant, 15-24 dB over (median per
-voice). Line lengths grow by about 20 ms. The cache version moved to 2, so
-the next `npm run timeline` re-synthesises every line of a short once.
+voice). Line lengths grow by about 20 ms.
+
+Nothing is synthesised again for this. Since 1.3.3 the cache keeps each
+line's raw model output (`<hash>.raw.wav`) apart from the trimmed line, so a
+change to trimming or post-processing only re-trims. Caches from 1.3.1 and
+earlier kept only the trimmed line, with silenceremove's stray samples in
+it; `scripts/vo_legacy.mjs` reads the stray sample and the value it replaced
+straight out of the 48 kHz file (2x and 3x resampling keeps every source
+sample), adds back what it took out and re-trims the result. On 13 test lines
+with a known clean version that left the cut within -58 to -83 dB of clean,
+from -13 to -32 dB before. A rebuilt short keeps its read: re-built from its
+1.3.1 cache with no TTS available, quiet-carriage's lines correlate 0.9996
+or better with the posted ones, and dry-cleaner-suit's (VoxCPM2, which
+ignores its seed) 0.9991 or better. Lines with `tempo` are re-trimmed but not
+repaired, because `atempo` already smeared the click (8 dB over its
+surroundings in dry-cleaner-suit and quick-draw).
 
 ## The series narrator clip
 
@@ -289,9 +303,12 @@ all lines that are not cached. Keys in the `voice` block:
 | `even` | compressor before levelling | Not part of the cache key; see "Levelling" |
 | `tailFade` | fade to silence at the end of each line, default 0.08 s | Not part of the cache key; `0` turns it off. See "Levelling" |
 
-Lines are cached in `.cache/vo/<hash>.wav` (gitignored), keyed on the text,
-every voice setting and the reference clip's bytes. Editing one VO line
-re-synthesises that line only; re-locking the clip re-synthesises all.
+Lines are cached in `.cache/vo/` (gitignored), keyed on the text, every
+voice setting and the reference clip's bytes: `<hash>.raw.wav` is the
+model's own output and `<hash>.wav` the trimmed line built from it. Editing
+one VO line re-synthesises that line only; re-locking the clip
+re-synthesises all. Changing `tempo` or `trimDb`, or an engine update to
+trimming, only re-trims from the raw file.
 
 ### Setting up the venv (once per Mac)
 

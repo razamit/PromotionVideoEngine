@@ -6,9 +6,12 @@
 //   command  any CLI: voice.command with {text_file} and {out} placeholders
 //   file     you supply public/vo/line_NN.wav (your own read); used as is
 //
-// Synthesised lines are cached in .cache/vo/<hash>.wav, keyed on the text and
-// every voice setting (and the reference clip's bytes), so a re-run only
-// re-synthesises lines whose text or voice changed. Every synthesised line is
+// Two caches in .cache/vo/, both keyed on the text and the voice settings (and
+// the reference clip's bytes): <hash>.raw.wav is the model's own output, kept
+// so that a change to trimming or post-processing never re-synthesises
+// (VoxCPM2 ignores its seed, so a new synthesis is a new read), and
+// <hash>.wav is the trimmed line built from it. A re-run only synthesises
+// lines whose text or synthesis settings changed. Every synthesised line is
 // then levelled to LINE_LUFS on its way to public/vo/, so no line jumps out
 // (Kokoro lines differ by 2 dB and trail off; `voice.even` also compresses
 // inside the line) and fades to silence over its last 80 ms (voice.tailFade).
@@ -20,6 +23,7 @@ import { extname, isAbsolute, join, resolve } from "node:path";
 import { fileHash, hashKey, runPythonJob } from "./python_job.mjs";
 import { ENGINE } from "./paths.mjs";
 import { decodeMono, speechBounds } from "./vo_trim.mjs";
+import { repairLegacyTrim } from "./vo_legacy.mjs";
 
 const SAMPLE_RATE = 48000;
 const LINE_LUFS = -20;
@@ -27,9 +31,14 @@ const MAX_LINE_GAIN_DB = 24; // the `even` compressor alone takes about 12 dB of
 // voice.even: a gentle speech compressor before levelling, for voices whose
 // level sags inside a line. On Kokoro af_heart it halves the drop on a trailing word.
 const EVEN_FILTER = "acompressor=threshold=-34dB:ratio=4:attack=3:release=150";
-// Bump when trimming or post-processing changes. 2: the trim no longer uses
-// silenceremove, which wrote a zero sample 30 ms into every line (vo_trim.mjs).
+// Bump when trimming or post-processing changes; the raw cache is not keyed on
+// it, so a bump re-trims every line but synthesises none. 2: the trim no
+// longer uses silenceremove, which wrote a zero sample 30 ms into every line
+// (vo_trim.mjs). Version 1 kept no raw output, so its trimmed lines are
+// repaired and re-trimmed instead (vo_legacy.mjs).
 const CACHE_VERSION = 2;
+const LEGACY_CACHE_VERSION = 1;
+const RAW_CACHE_VERSION = 1; // bump only when synthesis itself changes
 // voice.trimDb raises the threshold for a voice that leaves hiss after each
 // line: Kokoro bm_fable holds -44 dB for 0.45 s, which reads as a long gap.
 const DEFAULT_TRIM_DB = -45;
@@ -129,11 +138,24 @@ export function mlxOptions(voice, baseDir) {
   return { ...options, ...(voice.options ?? {}) };
 }
 
-function cacheKey(voice, options, text) {
+/** Settings that change the synthesis or the trimmed line (version 1 keys must stay byte-identical). */
+function keySettings(voice, options) {
   const settings = { ...voice, align: undefined, aligner: undefined, even: undefined, tailFade: undefined, options };
   if (options.ref_audio) settings.refAudioHash = fileHash(options.ref_audio);
   delete settings.refAudio;
-  return hashKey({ v: CACHE_VERSION, settings, text });
+  return settings;
+}
+
+/** Where a line's trimmed product, raw synthesis and 1.3.1 trimmed line live in the cache. */
+function cachePaths(voice, options, text, cacheDir) {
+  const settings = keySettings(voice, options);
+  const rawSettings = { ...settings, tempo: undefined, trimDb: undefined }; // applied after synthesis
+  const rawExt = voice.engine === "mlx" ? ".raw.wav" : ".raw.aiff";
+  return {
+    cached: join(cacheDir, `${hashKey({ v: CACHE_VERSION, settings, text })}.wav`),
+    raw: join(cacheDir, `${hashKey({ raw: RAW_CACHE_VERSION, settings: rawSettings, text })}${rawExt}`),
+    legacy: join(cacheDir, `${hashKey({ v: LEGACY_CACHE_VERSION, settings, text })}.wav`),
+  };
 }
 
 function synthesiseOne(voice, text, rawFile, workDir) {
@@ -156,25 +178,37 @@ function synthesiseOne(voice, text, rawFile, workDir) {
 function synthesiseMlx(voice, items, options, cacheDir) {
   if (!voice.model) throw new Error('voice.engine "mlx" needs voice.model, e.g. "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16"');
   console.log(`voice: synthesising ${items.length} line(s) with ${voice.model}`);
-  const lines = items.map((item) => ({ text: item.text, out: item.cached.replace(/\.wav$/, ".raw.wav") }));
+  const lines = items.map((item) => ({ text: item.text, out: item.raw }));
   const reports = runPythonJob("tts_mlx.py", { model: voice.model, options, lines }, cacheDir);
   if (reports.length !== lines.length) throw new Error(`tts_mlx.py returned ${reports.length} of ${lines.length} lines`);
   const seconds = reports.reduce((sum, r) => sum + r.seconds, 0);
   console.log(`voice: ${seconds.toFixed(1)}s of synthesis for ${items.length} line(s)`);
-  lines.forEach((line, i) => {
-    toTrimmedWav(line.out, items[i].cached, voice);
-    rmSync(line.out, { force: true });
-  });
 }
 
+/** Raw model output for each item, written to item.raw and kept. */
 function synthesiseMissing(voice, items, options, cacheDir) {
   if (voice.engine === "mlx") return synthesiseMlx(voice, items, options, cacheDir);
-  for (const item of items) {
-    const raw = item.cached.replace(/\.wav$/, ".raw.aiff");
-    synthesiseOne(voice, item.text, raw, cacheDir);
-    toTrimmedWav(raw, item.cached, voice);
-    rmSync(raw, { force: true });
+  for (const item of items) synthesiseOne(voice, item.text, item.raw, cacheDir);
+}
+
+/** A 1.3.1 trimmed line (tempo already applied) with its dropouts bridged, trimmed the new way. */
+function retrimLegacy(item, voice) {
+  const repaired = `${item.cached}.legacy.wav`;
+  repairLegacyTrim(item.legacy, repaired, { tempo: voice.tempo });
+  toTrimmedWav(repaired, item.cached, { trimDb: voice.trimDb });
+  rmSync(repaired, { force: true });
+}
+
+/** Builds every missing trimmed line: from the raw cache, else a 1.3.1 line, else a new synthesis. */
+function buildMissing(voice, missing, options, cacheDir) {
+  const legacy = missing.filter((item) => !existsSync(item.raw) && existsSync(item.legacy));
+  const fresh = missing.filter((item) => !existsSync(item.raw) && !existsSync(item.legacy));
+  if (fresh.length > 0) synthesiseMissing(voice, fresh, options, cacheDir);
+  for (const item of missing) {
+    if (legacy.includes(item)) retrimLegacy(item, voice);
+    else toTrimmedWav(item.raw, item.cached, voice);
   }
+  return { legacy: legacy.length, fresh: fresh.length };
 }
 
 /** One audio file per line, in order: public/vo/line_NN.wav. */
@@ -189,10 +223,12 @@ export function renderLineAudio(voice, texts, { voDir, cacheDir, baseDir }) {
   }
   mkdirSync(cacheDir, { recursive: true });
   const options = voice.engine === "mlx" ? mlxOptions(voice, baseDir) : {};
-  const plan = texts.map((text, i) => ({ text, out: outOf(i), cached: join(cacheDir, `${cacheKey(voice, options, text)}.wav`) }));
+  const plan = texts.map((text, i) => ({ text, out: outOf(i), ...cachePaths(voice, options, text, cacheDir) }));
   const missing = plan.filter((item) => !existsSync(item.cached));
-  if (missing.length > 0) synthesiseMissing(voice, missing, options, cacheDir);
+  const built = missing.length > 0 ? buildMissing(voice, missing, options, cacheDir) : { legacy: 0, fresh: 0 };
   plan.forEach((item) => levelInto(item.cached, item.out, voice));
-  console.log(`voice: ${voice.engine}, ${plan.length - missing.length} line(s) from cache, ${missing.length} new`);
+  const retrimmed = missing.length - built.legacy - built.fresh;
+  console.log(`voice: ${voice.engine}, ${plan.length - missing.length} line(s) from cache, ${retrimmed} re-trimmed from raw, ` +
+    `${built.legacy} rebuilt from a 1.3.1 cache, ${built.fresh} synthesised`);
   return plan.map((item) => item.out);
 }
