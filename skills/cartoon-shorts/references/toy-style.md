@@ -205,7 +205,9 @@ not fit that app and a bean story does.
 - `params.phone` and `params.callout` put the app on screen; the next
   section has their fields and the two lint rules that guard them.
 
-Voice: a calm, low read with `tempo` 1.0, not the fast bean narrator. Or no
+Voice: a calm, low read with `tempo` 1.0, not the fast bean narrator. Slow
+the short with `gapAfterLine` (0.25-0.45 s), not with a Kokoro `speed` under
+1.0: keep `speed` at 1.0-1.1 (voice-and-audio.md, "Toy pace"). Or no
 voice at all: `"voice": { "engine": "none", "wpm": 135 }` times the
 captions for a music-only cut, and the platform sound is added at upload.
 Do not put a commercial track in the file (music-and-sfx.md).

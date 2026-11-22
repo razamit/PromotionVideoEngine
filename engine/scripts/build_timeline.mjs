@@ -106,6 +106,17 @@ function report(script, budget, words, shots, totalSeconds) {
   reportLength(budget, words.length, totalSeconds);
 }
 
+/**
+ * A toy short slowed with Kokoro's speed instead of its gaps. Not a noise
+ * problem (the 2026-11-22 "static" was the old trim click, fixed in 1.3.2):
+ * the gaps move the pace in even steps and keep words at the voice's own rate.
+ */
+function warnSlowToyVoice(script, voice) {
+  const kokoro = voice.engine === "mlx" && /kokoro/i.test(voice.model ?? "");
+  if (script.style !== "toy" || !kokoro || voice.speed === undefined || Number(voice.speed) >= 1) return;
+  console.log(`WARNING: toy short with Kokoro speed ${voice.speed}; keep speed at 1.0-1.1 and slow the short with gapAfterLine (0.25-0.45 s) instead (voice-and-audio.md, "Toy pace")`);
+}
+
 /** Stops before any voice is synthesised when script.targetSeconds is not a length. */
 function lengthBudgetOrExit(script) {
   try {
@@ -163,6 +174,7 @@ function main() {
   };
   writeFileSync(OUT_JSON, JSON.stringify(timeline, null, 2));
   report(script, budget, words, shots, totalSeconds);
+  warnSlowToyVoice(script, voice);
   if (files.length > 0) console.log(`word times: ${alignedCount} of ${measured.length} lines force-aligned`);
 }
 

@@ -38,12 +38,12 @@ so the clone voices work in every short.
 | `heart` | Female, 192 Hz, bright and warm | A cheerful narrator against a grim situation, a change of pace | Trails off on some last words (line 5 of the bake-off); keep `"even": true` |
 | `turbo` | Lower take on the narrator's timbre, 146-174 Hz, flatter | When the narrator voice feels too bright for the story | Ran compounds together ("trashback"); check the transcript |
 | `voxclone` | The narrator's timbre with a different delivery, 190 Hz, flatter | A second take on the narrator for a quieter story | Ignores the seed, so a re-render changes the read; synthesise once and keep the cache |
-| `bella` | American woman, 199 Hz, a narrower pitch swing than `heart` (2.1 st) | A second female narrator when `heart` was the last one used | Level drops up to 15 dB on a last word without `"even": true` |
+| `bella` | American woman, 199 Hz, a narrower pitch swing than `heart` (2.1 st) | A second female narrator when `heart` was the last one used | Level drops up to 15 dB on a last word without `"even": true`. Heard as static in a toy short (2026-11-22); that was the trim click fixed in 1.3.2, and the voice measures like `emma`. Not heard again since the fix |
 | `emma` | British woman, 184 Hz | A polite British read of a mess; the "nature film" tone in a woman's voice | Nothing found; 0 Whisper errors on 28 lines |
-| `isabella` | British woman, 214 Hz, the highest of the British voices | A cheerful British narrator, lighter stories | Whisper heard "done" as "dunn" once; check the transcript |
+| `isabella` | British woman, 214 Hz, the highest of the British voices | A cheerful British narrator, lighter stories | Whisper heard "done" as "dunn" once; check the transcript. Heard as static in a toy short (2026-11-22); that was the trim click fixed in 1.3.2, and the voice measures like `emma`. Not heard again since the fix |
 | `george` | British man, 149 Hz, a 4.3 semitone swing | A dry British storyteller; the closest British voice to `narrator` | Whisper heard "Sticky" as "Tiki": listen to the app name. Above speed 1.3 it drops the first word of a line, so the pace comes from `tempo` |
 | `fable` | Low British man, 119 Hz, the widest swing of the presets (5.0 st) | A storybook or fairy-tale framing | Needs `"trimDb": -40`: it leaves 0.45 s of hiss after every line. Whisper heard "then" as "than" once |
-| `heart-emma` | `heart` and `emma` averaged, 190 Hz: British pronunciation in a half-American timbre | When `emma` sounds too formal for the story | Nothing found; 0 Whisper errors on 28 lines |
+| `heart-emma` | `heart` and `emma` averaged, 190 Hz: British pronunciation in a half-American timbre | When `emma` sounds too formal for the story | 0 Whisper errors on 28 lines. Heard as static in a toy short (2026-11-22); that was the trim click fixed in 1.3.2, and the voice measures like `emma`. Not heard again since the fix |
 | `bella-isabella` | `bella` and `isabella` averaged, 208 Hz: British pronunciation in a half-American timbre | A voice no other Kokoro user has by default | Whisper heard "done" as "dunn" once without `even` |
 
 ```jsonc
@@ -97,6 +97,33 @@ Kokoro uses its own `speed` (`george` uses both). Tune it until `npm run timelin
 205-225 wpm. Keep `tempo` at 1.17 or under: the variants rejected by ear
 were mostly pushed to 1.2-1.35.
 
+### Toy pace: slow it with pauses, not with speed
+
+A toy short reads at 130-160 wpm over the whole short (toy-style.md). Get
+there with `gapAfterLine` (0.25-0.45 s) and a line's own `gapAfter`, not by
+turning Kokoro's `speed` under 1.0. Keep `speed` at 1.0-1.1 and `tempo` at
+1.0 (`atempo` under 1.0 was not tested). A Kokoro preset at 1.0-1.1 reads a
+toy script at 180-210 wpm on its own, and 13 gaps of 0.25-0.45 s plus the
+1.6 s tail bring the short to the band. The three picks of 2026-11-22, each
+measured on its short's real lines:
+
+| Short | Voice | Speech alone | `gapAfterLine` | Whole short |
+|---|---|---|---|---|
+| five-magnet | `bf_emma`, speed 1.1, `even` | 199 wpm | 0.35 | 150 wpm, 26.4 s |
+| fridge-door | `bm_george`, speed 1.1 | 181 wpm | 0.25 | 147 wpm, 27.0 s |
+| haircut-math | `am_michael`, speed 1.0 | 210 wpm | 0.45 | 152 wpm, 27.6 s |
+
+A slower `speed` adds no noise of its own. Nine presets synthesised at 0.9,
+1.0, 1.15 and 1.3 measured the same at every speed: noise in the pauses
+inside a line, 2-12 kHz in those pauses, spectral flatness, impulsive
+events per second and the harmonics-to-noise ratio of vowels (that one rose
+slightly at the slower speeds). What slow reads did do was make the old trim
+click stand out (see "Levelling"): on `emma` it stood 30 dB over the sound
+around it at speed 0.9 and 22 dB at 1.3, because a slower onset is quieter
+around the click. It is gone since 1.3.2, so the reason to avoid low speeds
+is pace control, not noise: `gapAfterLine` moves the pace in even steps and
+keeps every word at the voice's natural rate.
+
 ### Rejected by ear (do not use)
 
 | Variant | Model and settings |
@@ -146,6 +173,28 @@ each line drops 8-11 dB in the finished mix.
 The limiter in the same step now compensates its 5 ms look-ahead; before,
 it shifted each line 5 ms late and dropped its last 5 ms. Line lengths do
 not change, so timelines keep their timing.
+
+Before 1.3.2 the trim itself put a click at the start of every line.
+ffmpeg's `silenceremove` (8.1) writes one zero sample where the silence it
+keeps meets the signal, which with a 30 ms lead-in lands right on the first
+word's onset; `even` plus the levelling then lift it 15-24 dB. In the three
+toy shorts heard as "static" after 1.3.1 (five-magnet, fridge-door,
+haircut-math) it was the strongest high-frequency spike in 26 of 41 lines,
+28-36 dB (median per short) over the 40 ms around it. In the two bean shorts
+heard as clean it was the strongest in 14 of 36 lines at 20 dB over
+(`emma`'s quiet-carriage) and 2 of 35 at 8 dB (quick-draw, where `george`'s
+`tempo` 1.17 smears it). Nothing else separated
+the three from the two: noise in pauses, 2-12 kHz content, impulsive events
+per second, vowel harmonics-to-noise, limiter load (none of the voices
+reaches the limiter) and the mix (no clipping; voice tracks at -20.5 to
+-20.8 LUFS and beds at -38.4 to -38.8 LUFS in all five). `scripts/vo_trim.mjs` now finds the trim points
+itself (the same -45 dB threshold on a 20 ms RMS window, 30 ms kept before
+the first window over it, so 30-40 ms before the first word, and 60 ms after
+the last) and cuts with `atrim`, which never
+alters a sample. After the fix no line has a spike at the cut, and the
+strongest spike left in a line is a consonant, 15-24 dB over (median per
+voice). Line lengths grow by about 20 ms. The cache version moved to 2, so
+the next `npm run timeline` re-synthesises every line of a short once.
 
 ## The series narrator clip
 

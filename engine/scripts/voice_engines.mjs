@@ -19,6 +19,7 @@ import { homedir } from "node:os";
 import { extname, isAbsolute, join, resolve } from "node:path";
 import { fileHash, hashKey, runPythonJob } from "./python_job.mjs";
 import { ENGINE } from "./paths.mjs";
+import { decodeMono, speechBounds } from "./vo_trim.mjs";
 
 const SAMPLE_RATE = 48000;
 const LINE_LUFS = -20;
@@ -26,7 +27,9 @@ const MAX_LINE_GAIN_DB = 24; // the `even` compressor alone takes about 12 dB of
 // voice.even: a gentle speech compressor before levelling, for voices whose
 // level sags inside a line. On Kokoro af_heart it halves the drop on a trailing word.
 const EVEN_FILTER = "acompressor=threshold=-34dB:ratio=4:attack=3:release=150";
-const CACHE_VERSION = 1; // bump when trimming or post-processing changes
+// Bump when trimming or post-processing changes. 2: the trim no longer uses
+// silenceremove, which wrote a zero sample 30 ms into every line (vo_trim.mjs).
+const CACHE_VERSION = 2;
 // voice.trimDb raises the threshold for a voice that leaves hiss after each
 // line: Kokoro bm_fable holds -44 dB for 0.45 s, which reads as a long gap.
 const DEFAULT_TRIM_DB = -45;
@@ -39,9 +42,6 @@ const DEFAULT_TRIM_DB = -45;
 // the length in seconds; 0 turns it off. Applied when levelling, so cached
 // lines are not re-synthesised and line lengths do not change.
 const TAIL_FADE = 0.08;
-const trimSilence = (db) =>
-  `silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.03,` +
-  `areverse,silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.06,areverse`;
 
 // Friendly script.json keys -> generate() keyword names. voice.options passes anything else.
 const MLX_KEYS = {
@@ -93,9 +93,15 @@ export function durationOf(file) {
   return parseFloat(out.trim());
 }
 
-/** Trim leading and trailing silence; voice.tempo speeds the read up without changing pitch. */
+/**
+ * Trim leading and trailing silence, keeping 30-40 ms before the first word
+ * and 60 ms after the last; voice.tempo speeds the read up without changing pitch.
+ * The cut is sample-exact (atrim), see vo_trim.mjs for why not silenceremove.
+ */
 function toTrimmedWav(input, output, { tempo, trimDb }) {
-  const filters = [trimSilence(Number(trimDb ?? DEFAULT_TRIM_DB))];
+  const thresholdDb = Number(trimDb ?? DEFAULT_TRIM_DB);
+  const [start, end] = speechBounds(decodeMono(input, SAMPLE_RATE), SAMPLE_RATE, { thresholdDb });
+  const filters = [`aresample=${SAMPLE_RATE}`, "aformat=channel_layouts=mono", `atrim=start_sample=${start}:end_sample=${end}`, "asetpts=N/SR/TB"];
   if (tempo && tempo !== 1) filters.push(`atempo=${Number(tempo).toFixed(3)}`);
   const partial = `${output}.part.wav`;
   run("ffmpeg", ["-v", "error", "-y", "-i", input, "-af", filters.join(","), "-ar", String(SAMPLE_RATE), "-ac", "1", partial]);
