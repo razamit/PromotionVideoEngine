@@ -11,7 +11,7 @@
 // re-synthesises lines whose text or voice changed. Every synthesised line is
 // then levelled to LINE_LUFS on its way to public/vo/, so no line jumps out
 // (Kokoro lines differ by 2 dB and trail off; `voice.even` also compresses
-// inside the line).
+// inside the line) and fades to silence over its last 80 ms (voice.tailFade).
 
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
@@ -30,6 +30,15 @@ const CACHE_VERSION = 1; // bump when trimming or post-processing changes
 // voice.trimDb raises the threshold for a voice that leaves hiss after each
 // line: Kokoro bm_fable holds -44 dB for 0.45 s, which reads as a long gap.
 const DEFAULT_TRIM_DB = -45;
+// The trim keeps 60 ms under the threshold after the last word, and `even`
+// plus levelling lift that tail 15-20 dB, so a line used to end on a hard
+// cut at -40 to -50 dBFS: a short burst of static at every sentence end,
+// loudest on the British presets (their raw tail stays near -60 dB where
+// af_bella's falls to -80). Every line now fades to silence over its last
+// 80 ms (quadratic: -4 dB 20 ms in, -12 dB at 40, -25 dB at 60). voice.tailFade sets
+// the length in seconds; 0 turns it off. Applied when levelling, so cached
+// lines are not re-synthesised and line lengths do not change.
+const TAIL_FADE = 0.08;
 const trimSilence = (db) =>
   `silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.03,` +
   `areverse,silenceremove=start_periods=1:start_threshold=${db}dB:start_silence=0.06,areverse`;
@@ -51,7 +60,18 @@ export function loudnessOf(file) {
   return parseFloat(matches[matches.length - 1][1]);
 }
 
-/** Copy a cached line to public/vo/ at LINE_LUFS, peaks held under -1 dBFS. */
+/** Tail fade in seconds: voice.tailFade, else TAIL_FADE; never more than half the line. */
+function tailFadeFor(voice, duration) {
+  const wanted = voice.tailFade === undefined ? TAIL_FADE : Math.max(0, Number(voice.tailFade) || 0);
+  return Math.min(wanted, duration / 2);
+}
+
+/**
+ * Copy a cached line to public/vo/ at LINE_LUFS, peaks held under -1 dBFS,
+ * ending in a short fade to silence. The limiter compensates its own 5 ms
+ * look-ahead; without that it shifted every line 5 ms late and dropped the
+ * line's last 5 ms, so each line stopped mid-tail.
+ */
 function levelInto(cached, out, voice) {
   let source = cached;
   if (voice.even) {
@@ -60,7 +80,11 @@ function levelInto(cached, out, voice) {
   }
   const measured = loudnessOf(source);
   const gain = measured < -60 ? 0 : Math.max(-MAX_LINE_GAIN_DB, Math.min(MAX_LINE_GAIN_DB, LINE_LUFS - measured));
-  run("ffmpeg", ["-v", "error", "-y", "-i", source, "-af", `volume=${gain.toFixed(2)}dB,alimiter=limit=0.89:level=false`, "-ar", String(SAMPLE_RATE), out]);
+  const filters = [`volume=${gain.toFixed(2)}dB`, "alimiter=limit=0.89:level=false:latency=1"];
+  const duration = durationOf(source);
+  const fade = tailFadeFor(voice, duration);
+  if (fade > 0) filters.push(`afade=t=out:st=${(duration - fade).toFixed(4)}:d=${fade.toFixed(4)}:curve=qua`);
+  run("ffmpeg", ["-v", "error", "-y", "-i", source, "-af", filters.join(","), "-ar", String(SAMPLE_RATE), out]);
   if (source !== cached) rmSync(source, { force: true });
 }
 
@@ -100,7 +124,7 @@ export function mlxOptions(voice, baseDir) {
 }
 
 function cacheKey(voice, options, text) {
-  const settings = { ...voice, align: undefined, aligner: undefined, even: undefined, options };
+  const settings = { ...voice, align: undefined, aligner: undefined, even: undefined, tailFade: undefined, options };
   if (options.ref_audio) settings.refAudioHash = fileHash(options.ref_audio);
   delete settings.refAudio;
   return hashKey({ v: CACHE_VERSION, settings, text });

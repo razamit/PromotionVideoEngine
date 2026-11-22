@@ -131,6 +131,22 @@ loud). Neither setting
 re-synthesises anything: the cache holds the raw read. `engine: "file"`
 reads are used as they are.
 
+Every levelled line also fades to silence over its last 80 ms
+(`"tailFade"`, in seconds; `0` turns it off). Before 1.3.1 a line ended on a
+hard cut: the trim keeps 60 ms under the threshold after the last word, and
+`even` plus the levelling lift that tail 15-20 dB, so the cut landed at
+-40 to -50 dBFS and played as a short burst of static at every sentence end.
+The British presets were worst because their raw tail stays near -60 dB
+(`af_bella`'s falls to -80): `heart-emma` lines ended at -41 dBFS (median of
+the last 10 ms), `isabella` at -51, `emma` at -54, `bella` at -61. The bed
+has almost nothing above 4 kHz in the gaps (-56 to -66 dBFS), so nothing
+masked it. With the fade the last 10 ms measure -86 to -105 dBFS (median
+per short; the worst single line -77) and the hiss band in the last 60 ms of
+each line drops 8-11 dB in the finished mix.
+The limiter in the same step now compensates its 5 ms look-ahead; before,
+it shifted each line 5 ms late and dropped its last 5 ms. Line lengths do
+not change, so timelines keep their timing.
+
 ## The series narrator clip
 
 `refAudio` is relative to `script.json`, falling back to the engine. The
@@ -190,6 +206,11 @@ What it found:
 - Every woman's voice sags on last words. `even` took the worst drop from
   8-15 dB to 4-5 dB on all five, so all five carry it. `fable` carries it
   too (12 dB to 3 dB once the hiss is trimmed).
+- After the last word every British preset leaves 0.2-0.35 s of noise
+  before the model's own silence: `isabella` a 1-4 kHz hum at -57 dB,
+  `emma` and `heart-emma` broadband hiss at -62 to -68 dB, `george` hiss at
+  -62 dB (`af_bella`: -66 to -72 dB, falling fast). The -45 dB trim removes
+  it, and the tail fade covers what the trim keeps (see "Levelling").
 - `bm_fable` read at 169 wpm at speed 1.18 because each line ended in 0.45 s
   of hiss at -44 dB, just over the -45 dB trim. With `"trimDb": -40` the same
   speed gives 215 wpm and the gaps match the other voices.
@@ -217,6 +238,7 @@ all lines that are not cached. Keys in the `voice` block:
 | `tempo` | ffmpeg `atempo` after trimming | Works for every engine except `file` |
 | `trimDb` | silence trim threshold, default -45 | Raise it (for example -40) for a voice that leaves hiss after each line; `fable` needs it |
 | `even` | compressor before levelling | Not part of the cache key; see "Levelling" |
+| `tailFade` | fade to silence at the end of each line, default 0.08 s | Not part of the cache key; `0` turns it off. See "Levelling" |
 
 Lines are cached in `.cache/vo/<hash>.wav` (gitignored), keyed on the text,
 every voice setting and the reference clip's bytes. Editing one VO line
