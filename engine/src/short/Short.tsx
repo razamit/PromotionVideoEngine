@@ -6,9 +6,9 @@ import { SerifCaptions } from "../captions/SerifCaptions";
 import { WordCaptions } from "../captions/WordCaptions";
 import { qrCardLayout, qrReserveRect } from "../layout/qrGeometry";
 import { QrCard } from "../overlay/QrCard";
-import { QrReserveProvider } from "../overlay/qrReserve";
+import { QrReserveProvider, type QrReserve } from "../overlay/qrReserve";
 import { sceneRegistry } from "@short/scenes/registry";
-import type { MusicSpec, TimedShot, TimedWord, Timeline } from "../timeline/types";
+import type { MusicSpec, QrSpec, TimedShot, TimedWord, Timeline } from "../timeline/types";
 import { musicGainPerFrame } from "./musicDuck";
 import { placeAllCues, type PlacedCue } from "./sfx";
 
@@ -16,16 +16,19 @@ import { placeAllCues, type PlacedCue } from "./sfx";
 // one <Sequence> per shot (scene inside a CameraRig), sound effects, and
 // captions on top. Captions sit outside the camera so they never zoom or
 // shake with the world. Sound rules: src/short/sfx.ts. A short with a QR
-// (timeline.qr) draws the QR card over the last shot at the caption level,
-// tells that shot's scene where the card sits (useQrReserve), keeps the
-// captions above the card while it is up, and, when the shot was held to
-// give the code time, freezes its last frame over the hold.
+// (timeline.qr) draws the QR card over its shot (qr.shotIndex, else the
+// last shot) at the caption level, tells that shot's scene where the card
+// sits (useQrReserve), keeps the captions above the card while it is up,
+// and, when the shot was held to give the code time, freezes its last frame
+// over the hold. The card goes with the cut out of its shot; the build
+// already moved every later shot, word and sound past the hold.
 
 // A shot followed by a dissolve, whip or zoomBlur keeps playing a few frames
 // longer, under the next shot as it enters, so a transition never shows
 // black; later Sequences paint on top.
-// `holdFrames` (the last shot of a short with a QR): the shot's final frames
-// repeat its last original frame, camera move included.
+// `holdFrames` (the QR shot of a short with a QR): the shot's final frames
+// repeat its last original frame, camera move included; so do the frames
+// under the next shot's entrance.
 export function ShotView({ shot, next, fps, holdFrames = 0 }: { shot: TimedShot; next?: TimedShot; fps: number; holdFrames?: number }) {
   const Scene = sceneRegistry[shot.scene];
   if (!Scene) throw new Error(`Scene "${shot.scene}" is not in the short's scenes/registry.ts`);
@@ -62,6 +65,15 @@ function CueAudio({ cue, fps }: { cue: PlacedCue; fps: number }) {
   );
 }
 
+/** The QR shot, with the card's place handed to its scene and its hold frozen. */
+function QrShotView({ shot, next, fps, qr, reserve }: { shot: TimedShot; next?: TimedShot; fps: number; qr: QrSpec; reserve: QrReserve | null }) {
+  return (
+    <QrReserveProvider reserve={reserve}>
+      <ShotView shot={shot} next={next} fps={fps} holdFrames={qr.holdFrames} />
+    </QrReserveProvider>
+  );
+}
+
 function MusicBed({ music, words }: { music: MusicSpec; words: TimedWord[] }) {
   const { fps, durationInFrames } = useVideoConfig();
   const gains = useMemo(
@@ -83,15 +95,13 @@ export function Short({ timeline }: { timeline: Timeline }) {
   const { qr } = timeline;
   const reserve = useMemo(() => (qr ? qrReserveRect(qrCardLayout(qr.modules.length, qr.label)) : null), [qr]);
   // Captions keep above the card while it is up; undefined (no change at all) without a QR.
-  const keepAbove = qr && reserve ? { fromSec: qr.startSec, bottomPx: reserve.top } : undefined;
-  const lastIndex = timeline.shots.length - 1;
+  const keepAbove = qr && reserve ? { fromSec: qr.startSec, untilSec: qr.endSec, bottomPx: reserve.top } : undefined;
+  const qrIndex = qr ? (qr.shotIndex ?? timeline.shots.length - 1) : -1;
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {timeline.shots.map((shot, i) => (
-        i === lastIndex && qr ? (
-          <QrReserveProvider key={shot.index} reserve={reserve}>
-            <ShotView shot={shot} fps={fps} holdFrames={qr.holdFrames} />
-          </QrReserveProvider>
+        i === qrIndex && qr ? (
+          <QrShotView key={shot.index} shot={shot} next={timeline.shots[i + 1]} fps={fps} qr={qr} reserve={reserve} />
         ) : (
           <ShotView key={shot.index} shot={shot} next={timeline.shots[i + 1]} fps={fps} />
         )

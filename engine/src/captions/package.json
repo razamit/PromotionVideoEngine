@@ -1,0 +1,4 @@
+{
+  "description": "Marks the .ts files in this folder as ES modules for Node, which imports keepAbove.ts directly from the QR tests (scripts/qr/test/). The bundler and tsc ignore this.",
+  "type": "module"
+}

@@ -1,9 +1,10 @@
 import React, { createContext, useContext } from "react";
 import type { Rect } from "../layout/qrGeometry";
 
-// Tells the last shot's scene where the QR card will sit, so the scene can
-// move its words and logo out of the way. Short.tsx provides it around the
-// last shot only; everywhere else, and in every short without a QR, it is
+// Tells the QR shot's scene where the QR card will sit, so the scene can
+// move its words and logo out of the way. Short.tsx provides it around that
+// shot only (the last shot, unless the timeline's qr.shotIndex names an
+// earlier one); everywhere else, and in every short without a QR, it is
 // null and a scene draws exactly as it always has.
 //
 // In a short's own end scene:

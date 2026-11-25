@@ -123,6 +123,8 @@ Fields:
 - `shot.captionY`: caption centre, default 0.64; move it off an app screen's
   key UI (0.86 under a phone works).
 - `shot.hideCaptions`: for the end card.
+- `shot.qr`: `true` puts the QR end card on this shot instead of the one
+  the engine picks (below). At most one shot may have it.
 - `shot.sfx`: a file under `public/`, played at the shot's start.
 - `lines[].gapAfter`: a pause after a line, for a beat that needs to land
   (0.3-0.5 s, rarely).
@@ -142,11 +144,15 @@ Fields:
   first key of script.json (qr-end-card.md). Each short needs its own;
   the timeline warns when another short in the folder has the same one.
 
-With a QR, the last shot carries the card. Its captions move above the
-card, which puts them on the end card's own words, so give the last shot
-no spoken line or set `"hideCaptions": true` on it. A last shot shorter
-than the brief's `qr.minSeconds` (2.5 s by default) is held on its last
-frame. Lint counts that hold in the short's length but not in its pace.
+With a QR, one shot carries the card: a shot marked `"qr": true`, else the
+last shot, or, when the last shot is not an end card (a loop line after
+"link in bio"), the last `endCard` shot that ends its line. While the card
+is up its captions move above it, which puts them on the end card's own
+words, so give that shot no spoken line or set `"hideCaptions": true` on
+it. A QR shot shorter than the brief's `qr.minSeconds` (2.5 s by default)
+is held on its last frame; when it is not the last shot, everything after
+it starts later by the hold. Lint counts that hold in the short's length
+but not in its pace (qr-end-card.md).
 
 ## Review table (what the channel owner sees before anything is built)
 

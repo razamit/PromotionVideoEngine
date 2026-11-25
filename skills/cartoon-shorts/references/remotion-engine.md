@@ -61,8 +61,8 @@ src/camera/layers.tsx        parallax: DepthLayer, Plate, Foreground, useCameraS
 src/captions/WordCaptions.tsx one or two words at a time, pop and tilt, emphasis colour, clamped into the safe zone
 src/layout/safeZone.ts       where TikTok / Shorts / Reels draw their UI (SAFE_ZONE, safeBox, clampCentreY)
 src/layout/qrGeometry.ts     where the QR end card sits and how big its modules are, from the module count
-src/overlay/QrCard.tsx       the QR end card, drawn over the last shot outside the camera (useQrReserve, FitAboveQr, qrTextAudit)
-scripts/qr/                  the QR settings, matrix, hold, redirect check, decode check and `npm run qr`
+src/overlay/QrCard.tsx       the QR end card, drawn over the QR shot outside the camera (useQrReserve, FitAboveQr, qrTextAudit)
+scripts/qr/                  the QR settings, shot choice, matrix, hold, redirect check, decode check and `npm run qr` (tests: npm test in the engine)
 src/characters/Bean.tsx      the house character (Face.tsx, Hair.tsx)
 src/world/Room3D.tsx         three-walled toon room; its camera dollies with the shot's move (real parallax)
 src/world/ToonBox.tsx        toon material ramp + inverted-hull outline

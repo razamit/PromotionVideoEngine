@@ -121,7 +121,7 @@ function EndCardAboveQr({ name, line, reserve }: { name: string; line: string; r
   );
 }
 
-/** The last shot of every bean short. With a QR (useQrReserve) the words move above the card and the bean steps down to the corner. */
+/** The end card of every bean short. With a QR (useQrReserve) the words move above the card and the bean steps down to the corner. */
 export function EndCard({ name = "Sticky Tasks", line = "Link in bio" }: { name?: string; line?: string }) {
   const reserve = useQrReserve();
   if (reserve) {

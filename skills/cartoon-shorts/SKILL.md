@@ -261,14 +261,16 @@ Fix, re-run `npm run review`, repeat. Then check `references/publishing.md`.
 A 55 s short renders in about a minute on an Apple Silicon Mac.
 
 **QR end card.** When the project's product brief has a `qr` block, the
-timeline adds a QR card over the last shot (on by default; `"qr": false` in
+timeline adds a QR card over the end card (on by default; `"qr": false` in
 script.json turns it off, `"qrCode"` sets the code, else it is made from the
-folder name and saved into script.json). Stills, Studio, `review` and
-`bubbles` show a "QR preview" panel where the code goes; only
-`npm run render` draws the real one. Look at a still of the last shot: no
-words or logo under or touching the card. The last shot should have no
-spoken line, or `"hideCaptions": true`, since its captions move above the
-card onto the end card's own words (the timeline warns). A custom end
+folder name and saved into script.json). The card goes on the last shot,
+or on the last `endCard` shot when a loop line follows it, and the
+timeline prints which; `"qr": true` on one shot picks another. Stills,
+Studio, `review` and `bubbles` show a "QR preview" panel where the code
+goes; only `npm run render` draws the real one. Look at a still of the QR
+shot: no words or logo under or touching the card. The QR shot should
+have no spoken line, or `"hideCaptions": true`, since its captions move
+above the card onto the end card's own words (the timeline warns). A custom end
 scene uses `useQrReserve` and `FitAboveQr` (references/qr-end-card.md).
 `render` and `finish` stop when the timeline is out of date with the QR
 settings. `npm run render` then checks that the QR's URL answers 302 and

@@ -15,6 +15,7 @@ import { dirname, join } from "node:path";
 import { LONGEST_SHORT_SECONDS, lengthBudget, scaledLimit } from "./length_budget.mjs";
 import { checkAppShots } from "./lint_app_shots.mjs";
 import { ENGINE, SHORT, TIMELINE_FILE, publicFile } from "./paths.mjs";
+import { qrShotIndexOf } from "./qr/qr_shot.mjs";
 
 const SCRIPT_FILE = join(SHORT, process.argv[2] ?? "script.json");
 const SAFE_ZONE_FILE = join(ENGINE, "src", "layout", "safeZone.ts");
@@ -160,11 +161,12 @@ function checkConsecutive(shots) {
   }
 }
 
-function checkPacing(shots) {
+/** `qrShotIndex`: the shot under the QR card (-1 without one); like the last shot it may hold, its held frames included. */
+function checkPacing(shots, qrShotIndex = -1) {
   const last = shots[shots.length - 1];
   for (const shot of shots) {
     const length = shot.end - shot.start;
-    const exempt = shot === last || shot.hideCaptions;
+    const exempt = shot === last || shot.hideCaptions || shot.index === qrShotIndex;
     if (!exempt && length > LIMITS.maxShotSeconds) {
       add("warn", "long-shot", tag(shot), `${length.toFixed(2)}s, over ${LIMITS.maxShotSeconds}s`,
         "split it into two shots (weight) or move part of the line to another angle");
@@ -348,7 +350,7 @@ function main() {
   checkHook(shots);
   checkRepeats(shots);
   checkConsecutive(shots);
-  checkPacing(shots);
+  checkPacing(shots, timeline.qr ? qrShotIndexOf(timeline) : -1);
   checkCaptionZone(timeline, zone);
   checkAppShots(shots, { limits: LIMITS, add, tag, zone });
   checkSfx(timeline);

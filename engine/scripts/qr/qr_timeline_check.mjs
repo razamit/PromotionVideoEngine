@@ -1,13 +1,15 @@
 // Is generated/timeline.json still right about the QR? The settings (the
-// brief's qr block plus script.json "qr" and "qrCode") can change after the
-// timeline was built; rendering or posting that timeline would put the
-// wrong code, or a code that should not be there, in the video. `render`,
+// brief's qr block plus script.json "qr" and "qrCode", and which shot
+// carries the card: qr_shot.mjs) can change after the timeline was built;
+// rendering or posting that timeline would put the wrong code, a code that
+// should not be there, or the code on the wrong shot, in the video. `render`,
 // `finish` and `qr` all ask this one question the same way.
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isLocalTestUrl, localTestWarning } from "./qr_brief_rules.mjs";
 import { resolveShortQr } from "./qr_project.mjs";
+import { qrShotIndexOf } from "./qr_shot.mjs";
 
 export const REBUILD_HINT = "rebuild the timeline (npm run timeline), then render again";
 
@@ -24,6 +26,18 @@ function fullyVisibleSeconds(qr, fps) {
 }
 
 /**
+ * The card on another shot than script.json now chooses. A 1.4.0 timeline
+ * has no qr.shotIndex and its card is on the last shot, so it still matches
+ * while the script also puts the card there.
+ */
+function qrShotMismatch(settings, timeline) {
+  if (!settings.shot) return null;
+  const onShot = qrShotIndexOf(timeline);
+  if (onShot === settings.shot.index) return null;
+  return `the timeline's QR card is on shot #${onShot} but script.json now puts it on shot #${settings.shot.index} (${settings.shot.reason})`;
+}
+
+/**
  * Why the timeline's QR does not match the settings ("on" or "off"), or null
  * when it does. Settings with status "error" are the caller's to report.
  */
@@ -34,6 +48,8 @@ export function qrTimelineMismatch(settings, timeline) {
   if (qr.code !== settings.code) return `the timeline's QR code is "${qr.code}" but the settings say "${settings.code}"`;
   if (qr.url !== settings.url) return `the timeline's QR is ${qr.url} but the settings say ${settings.url}`;
   if (qr.label !== settings.label) return `the timeline's QR label is "${qr.label}" but the settings say "${settings.label}"`;
+  const shotProblem = qrShotMismatch(settings, timeline);
+  if (shotProblem) return shotProblem;
   if (fullyVisibleSeconds(qr, timeline.fps) + 1e-9 < settings.minSeconds) return `the timeline shows the QR for ${fullyVisibleSeconds(qr, timeline.fps).toFixed(2)} s but qr.minSeconds is ${settings.minSeconds}`;
   return null;
 }

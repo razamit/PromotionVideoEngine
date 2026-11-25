@@ -10,8 +10,8 @@ import { isQrVerified } from "./qrVerification";
 
 // The QR end card: pure black modules on a white rounded card, the label
 // under the symbol. Short.tsx draws it at the caption level, outside every
-// CameraRig, for the whole last shot, so it never scales or shakes with the
-// camera. It comes in over qr.enterFrames (fade and a small grow); after
+// CameraRig, for the whole of its shot (the last one, or qr.shotIndex), so
+// it never scales or shakes with the camera; it goes with the cut out of it. It comes in over qr.enterFrames (fade and a small grow); after
 // that it has no transform at all and every module sits on whole pixels.
 // The real modules are painted only in a render that `npm run render`
 // verified (qrVerification.ts); everywhere else the symbol's place holds a

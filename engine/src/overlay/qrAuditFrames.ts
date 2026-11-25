@@ -6,7 +6,7 @@ import type { QrSpec, TimedWord } from "../timeline/types";
 /**
  * Local frames of the card's Sequence that the text audit looks at: the
  * middle and the last frame, and the middle of the first word spoken while
- * the card is up (captions of a last shot with a spoken line).
+ * the card is up (captions of a QR shot with a spoken line).
  */
 export function qrAuditFrames(qr: QrSpec, words: TimedWord[], fps: number, windowFrames: number): number[] {
   const from = Math.round(qr.startSec * fps);

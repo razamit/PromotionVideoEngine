@@ -172,15 +172,19 @@ qr:
   minSeconds: 2.5                      # optional, 2.5 to 10
 ```
 
-- Every short in that project gets the QR on its last shot. `"qr": false`
-  in a short's `script.json` turns it off for that short.
+- Every short in that project gets the QR on its end card: the last shot,
+  or, when a loop line follows the "link in bio" card, the last `endCard`
+  shot that ends its line. `"qr": true` on one shot in `script.json` picks
+  another. `"qr": false` at the top of a short's `script.json` turns the
+  QR off for that short.
 - `"qrCode": "bin"` in `script.json` sets the code (a-z, 0-9 and dashes,
   up to 20 characters). Without it, `npm run timeline` makes one from the
   folder name and saves it into `script.json`. The timeline warns when
   another short in the same folder already uses the code.
-- The code must be fully visible for at least `minSeconds`. If the last
-  shot is shorter, the short is held on its last frame for the missing
-  time.
+- The code must be fully visible for at least `minSeconds`. If the QR
+  shot is shorter, it is held on its last frame for the missing time; when
+  it is not the last shot, everything after it (shots, voice, captions,
+  sound effects) starts that much later and the music plays on.
 - Only `npm run render` draws the real code. Studio, stills, `review` and
   `bubbles` show a grey "QR preview" panel of the same size in its place.
 - `render` and `finish` stop when the timeline no longer matches the QR
@@ -188,9 +192,9 @@ qr:
   redirect that has a `Location`, and renders nothing if it does not.
   `render` and `finish` read the QR back from the video and fail if it
   does not match the URL.
-- Captions in the last shot move above the card, where they can land on
-  the end card's own words. Give that shot no spoken line, or set
-  `"hideCaptions": true` on it.
+- Captions in the QR shot move above the card while it is up, where they
+  can land on the end card's own words. Give that shot no spoken line, or
+  set `"hideCaptions": true` on it.
 - `npm run qr` runs every check again (the redirect, the QR in
   `out/short_final.mp4`, and that `social_text.md` exists and has the URL
   and the `socialLine`). An older short without that script:

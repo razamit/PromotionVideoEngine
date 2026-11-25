@@ -45,26 +45,63 @@ key; otherwise the QR is off and a warning says why.
 block, or a URL too long for the card (above QR version 10), stops it
 early. It builds the matrix in Node (error correction M, the `uqr` package)
 and writes it into the timeline as `qr`: `{ code, url, label, version,
-modules, startSec, endSec, enterFrames, holdFrames }`. It prints
-`qr: on, code "<code>" ...` and the version and window. It warns, without
-stopping, when another short in the same shorts folder (or the project's
-`shortsDir`) has the same `qrCode`: two shorts would share one redirect and
-one scan count.
+modules, startSec, endSec, enterFrames, holdFrames }`, plus `shotIndex`
+when the card is not on the last shot (see "Which shot"). It prints
+`qr: on, code "<code>" ...`, which shot carries the card and why, and the
+version and window. It warns, without stopping, when another short in the
+same shorts folder (or the project's `shortsDir`) has the same `qrCode`:
+two shorts would share one redirect and one scan count.
+
+## Which shot
+
+One shot carries the card (`scripts/qr/qr_shot.mjs`):
+
+1. A shot with `"qr": true` in script.json. At most one shot may say so;
+   two or more stop the timeline with an error naming them. (This is the
+   shot's own `qr`, inside `lines[].shots[]`; the top-level `"qr"` still
+   switches the whole QR on or off.)
+2. Otherwise the last shot, when it is an end card (scene `endCard`, bean
+   or toy), or when no shot is.
+3. Otherwise, when the last shot is not an end card but an earlier shot is
+   (a "link in bio" card followed by a loop line), the last `endCard` shot
+   that is the last shot of its line. An `endCard` shot that shares its
+   line with a later shot is never chosen this way, since a hold after it
+   would cut into the sentence; the card then stays on the last shot, as
+   in 1.4.0, and the timeline says why.
+
+The timeline prints the choice, for example `qr: card on shot #46 endCard
+(line 27, "Sticky Tasks. Free. Link in bio."): the last shot (#47
+questCard) is not an end card, so the last endCard shot that ends its line
+carries the card`. A short whose card was already on its last shot builds
+the same timeline as in 1.4.0.
 
 ## The card
 
-- **Where.** `src/overlay/QrCard.tsx` draws it over the whole last shot,
-  outside every CameraRig, at the caption level: black modules on a white
+- **Where.** `src/overlay/QrCard.tsx` draws it over the whole QR shot
+  (`qr.shotIndex`, else the last shot), outside every CameraRig, at the
+  caption level: black modules on a white
   rounded card, whole pixels per module, a quiet zone of 4 modules, the
   label under it in Inter. It is centred on x = 540, ends at y = 1424, and
   the symbol stays left of x = 780 where TikTok's buttons start
-  (`src/layout/qrGeometry.ts`). It fades in over 5 frames, then holds still.
-- **Hold.** Only fully visible frames count. When the last shot gives
-  fewer than `minSeconds` of them, the short grows by the missing frames
-  and the scene's last frame is frozen over them (Remotion `<Freeze>`); a
-  fixed music bed that ends earlier fades out at its own end. A long
-  enough last shot is left alone. Lint counts the held frames toward the
-  short's length but not toward its words-per-minute pace.
+  (`src/layout/qrGeometry.ts`). It fades in over 5 frames, then holds
+  still. It goes with the cut out of its shot, with no fade.
+- **Hold.** Only fully visible frames count. When the QR shot gives fewer
+  than `minSeconds` of them, the short grows by the missing frames and the
+  scene's last frame is frozen over them (Remotion `<Freeze>`); a fixed
+  music bed that ends earlier fades out at its own end. A long enough shot
+  is left alone. Lint counts the held frames toward the short's length but
+  not toward its words-per-minute pace, and does not call the QR shot a
+  long shot.
+- **Hold before a loop line.** When the QR shot is not the last, the held
+  frames go in at its cut and everything after it starts later by exactly
+  as many frames: the later shots (and so their sound effects, which are
+  placed from the shots), the lines, the word times and the captions. The
+  voice is not cut and no line is synthesised again: in `vo.wav` the
+  silence after the QR shot's line grows by the hold, so the next line
+  starts on its new frame. The music bed plays on under the hold. The hold
+  needs the QR shot to end its line; a shot marked `"qr": true` that does
+  not, and is too short, stops the timeline with a message (give it more
+  weight, put it on its own line, or mark the line's last shot).
 - **Preview or real.** Only `npm run render` draws the real code (see
   "Checks"). Studio, `still`, `review`, `bubbles`, a partial render
   (`--frames`) and a scaled one show a grey-blue "QR preview" panel of the
@@ -75,8 +112,9 @@ one scan count.
 
 ## Keeping the end scene clear
 
-The last shot's scene can call `useQrReserve()`: the card's rectangle plus
-a 24 px margin, in px of the 1080x1920 frame, or null without a QR.
+The QR shot's scene can call `useQrReserve()`: the card's rectangle plus
+a 24 px margin, in px of the 1080x1920 frame, or null without a QR and in
+every other shot.
 `EndCard` and `BrandEndCard` use it to put their words and logo above the
 card through `<FitAboveQr>`. With no QR they render as before.
 
@@ -103,11 +141,12 @@ props: `top`, `maxWidth`, `minScale`, `style`. During a render,
 for any text that touches the card. Stills do not print these warnings; a
 render does, so read the render log.
 
-**Captions in the last shot.** From the frame the card appears, captions
-are moved above it. That is usually where the end scene's own words are,
-so they can land on top of them. The timeline warns when the last shot has
-a spoken, captioned line. Give the last shot no spoken line, or set
-`"hideCaptions": true` on it.
+**Captions in the QR shot.** While the card is up, from the frame it
+appears to the cut out of its shot, captions are moved above it. That is
+usually where the end scene's own words are, so they can land on top of
+them. The timeline warns when the QR shot has a spoken, captioned line.
+Give it no spoken line, or set `"hideCaptions": true` on it. Captions in
+the shots after it sit where they always do.
 
 ## Checks
 
@@ -115,8 +154,12 @@ Every check below exists so a code that points nowhere, or at the wrong
 place, is never posted. There is no switch to skip any of them.
 
 - **Stale timeline.** `render` and `finish` first compare the timeline's
-  `qr` with the current settings (on or off, code, URL, label, and the
-  fully visible time against `minSeconds`). If they differ, they stop
+  `qr` with the current settings (on or off, code, URL, label, the shot
+  that carries the card, and the fully visible time against `minSeconds`).
+  A timeline without `qr.shotIndex` (every 1.4.0 timeline) has the card on
+  its last shot, so it still passes while script.json also puts it there;
+  a 1.4.0 timeline of a short whose card now moves to an earlier end card
+  is out of date. If they differ, they stop
   before doing anything and say to run `npm run timeline`. `render` does
   this even for a preview render.
 - **Redirect.** A full render to a video file (`npm run render`, or
@@ -129,7 +172,8 @@ place, is never posted. There is no switch to skip any of them.
   does Remotion start with the one value that lets `QrCard` paint the real
   modules (`src/overlay/qrVerification.ts`).
 - **Decode.** After that render, and again after `finish`, one frame from
-  the middle of the card's fully visible window is decoded (ffmpeg, then
+  the middle of the card's fully visible window (wherever in the short
+  that window is) is decoded (ffmpeg, then
   the `qr` package, which is separate from the encoder). It reads the
   card's own rectangle first and the whole frame only when that finds
   nothing. The text must equal the URL exactly. A file that fails is

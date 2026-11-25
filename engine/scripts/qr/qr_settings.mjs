@@ -7,9 +7,11 @@
 //   script.json "qr": true      -> on, and an error when the brief has no qr.baseUrl
 //   no brief, or no qr block    -> off, silently
 //   script.json "qrCode": "bin" -> the code; else derived from the folder name
+//   a shot with "qr": true       -> that shot carries the card (qr_shot.mjs)
 
 import { deriveQrCode, qrCodeProblem } from "./qr_code_name.mjs";
 import { QR_DEFAULT_LABEL, QR_MIN_SECONDS_FLOOR, qrBlockProblems } from "./qr_brief_rules.mjs";
+import { chooseQrShot } from "./qr_shot.mjs";
 
 // `silent`: the timeline prints nothing about the QR (no block, no brief, or switched off in script.json).
 const off = (reason, silent = false) => ({ status: "off", reason, silent });
@@ -37,7 +39,8 @@ function codeFor(script, folderName) {
  * @param {{ script: Record<string, any>, brief: Record<string, any> | null, folderName: string }} input
  * @returns {{ status: "off", reason: string, silent: boolean }
  *   | { status: "error", error: string }
- *   | { status: "on", code: string, codeSource: "script" | "derived", url: string, label: string, socialLine: string, minSeconds: number }}
+ *   | { status: "on", code: string, codeSource: "script" | "derived", url: string, label: string, socialLine: string, minSeconds: number, shot: ReturnType<typeof chooseQrShot> }}
+ *   `shot`: the shot that carries the card (qr_shot.mjs).
  */
 export function resolveQrSettings({ script, brief, folderName }) {
   const toggle = scriptSwitch(script);
@@ -52,6 +55,8 @@ export function resolveQrSettings({ script, brief, folderName }) {
   if (blockErrors.length) return failed(blockErrors.map((problem) => problem.message).join("; "));
   const code = codeFor(script, folderName);
   if (code.error) return failed(code.error);
+  const shot = chooseQrShot(script.lines);
+  if (shot.error) return failed(shot.error);
   return {
     status: "on",
     code: code.code,
@@ -60,6 +65,7 @@ export function resolveQrSettings({ script, brief, folderName }) {
     label: block.label ?? QR_DEFAULT_LABEL,
     socialLine: block.socialLine,
     minSeconds: block.minSeconds ?? QR_MIN_SECONDS_FLOOR,
+    shot,
   };
 }
 

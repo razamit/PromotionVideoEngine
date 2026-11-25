@@ -3,6 +3,9 @@
   "private": true,
   "license": "MIT",
   "description": "The shared Remotion engine behind the cartoon-shorts Claude Code plugin. Each short runs it through its own package.json (bin/short.mjs).",
+  "scripts": {
+    "test": "node --test \"scripts/qr/test/*.test.mjs\""
+  },
   "dependencies": {
     "@react-three/fiber": "9.8.2",
     "@remotion/bundler": "4.0.536",

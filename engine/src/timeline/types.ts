@@ -85,6 +85,12 @@ export type ShotSpec = {
   captionY?: number;
   /** Hide captions, e.g. on an end card that already shows the words. */
   hideCaptions?: boolean;
+  /**
+   * true: this shot carries the QR end card instead of the default (scripts/qr/qr_shot.mjs).
+   * At most one shot may say so; without one the last shot does, or the last endCard shot
+   * that ends its line when the last shot is not an end card.
+   */
+  qr?: boolean;
 };
 
 /**
@@ -170,13 +176,21 @@ export type QrSpec = {
   version: number;
   /** The symbol at error correction M, one string per row, "1" black and "0" white, no quiet zone. */
   modules: string[];
-  /** The card is on screen from startSec to endSec: the whole last shot. */
+  /** The card is on screen from startSec to endSec: the whole of its shot, held frames included. */
   startSec: number;
   endSec: number;
   /** Frames the card takes to come in; the hold counts only the frames after them. */
   enterFrames: number;
-  /** Frames added at the end that repeat the last shot's last frame; 0 when the shot was long enough. */
+  /**
+   * Frames added at the end of the QR shot that repeat its last scene frame; 0 when the shot was long
+   * enough. For an earlier shot, every later shot, line and word was moved later by as many frames.
+   */
   holdFrames: number;
+  /**
+   * The shot that carries the card (TimedShot.index), written only when it is not the last shot
+   * (scripts/qr/qr_shot.mjs). Missing: the last shot, as in every timeline before 1.4.1.
+   */
+  shotIndex?: number;
 };
 
 export type Timeline = {

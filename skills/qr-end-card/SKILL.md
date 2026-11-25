@@ -6,12 +6,14 @@ argument-hint: "<code>"
 
 # QR end card
 
-Puts a QR code on the last shot of a short that already exists, or changes
+Puts a QR code on the end card of a short that already exists, or changes
 the one it has. The QR points at `<qr.baseUrl><code>`, where `qr.baseUrl`
 comes from the project's product brief and the code is the argument
-(1 to 20 characters of `a-z`, `0-9` and `-`). The engine draws the card,
-holds the last shot until the code has been fully visible for at least
-`minSeconds` (2.5 s unless the brief says more), and checks the result. How it works in detail:
+(1 to 20 characters of `a-z`, `0-9` and `-`). The engine draws the card
+over one shot (the QR shot: the last shot, or the "link in bio" end card
+when a loop line follows it), holds that shot until the code has been
+fully visible for at least `minSeconds` (2.5 s unless the brief says
+more), and checks the result. How it works in detail:
 `${CLAUDE_PLUGIN_ROOT}/skills/cartoon-shorts/references/qr-end-card.md`.
 
 ## Set-up
@@ -50,24 +52,33 @@ before plugin 1.4.0 has no `npm run qr`; run every step as
    why and suggest a fixed one (lowercase, dashes for spaces).
 3. **script.json.** Set `"qrCode": "<code>"` (add it as the first key, or
    change the value) and remove `"qr": false` if it is there. Change
-   nothing else in the file.
+   nothing else in the file, unless the card should sit on another shot
+   than the engine picks (step 4): then add `"qr": true` to that one shot
+   (only one shot may have it).
 4. **Timeline.** `npm run timeline`. It prints `qr: on, code "<code>"`,
-   the QR version and, when the last shot was too short, how many frames
-   it was held. Pass on any warning it prints: another short using the
-   same code (give one of them its own `qrCode`), or spoken words with
-   captions in the last shot.
-5. **Look at the last shot.** `npm run still -- out/qr.png --frame=<n>`
+   the shot that carries the card and why, the QR version and, when that
+   shot was too short, how many frames it was held. The engine picks the
+   last shot, or, when the last shot is not an end card (a loop line after
+   "link in bio"), the last `endCard` shot that ends its line; everything
+   after a held QR shot moves later by the hold. If the shot it names is
+   not the call-to-action card, mark the right one `"qr": true` and run it
+   again. Pass on any warning it prints: another short using the same code
+   (give one of them its own `qrCode`), or spoken words with captions in
+   the QR shot.
+5. **Look at the QR shot.** `npm run still -- out/qr.png --frame=<n>`
    with `<n>` in the middle of the QR window (`qr.startSec` to `qr.endSec`
    in `generated/timeline.json`, times 30). The still shows a grey "QR
    preview" panel where the code goes; that is expected, only the render
    draws the real code. Read the PNG: no words or logo under or touching
-   the card, the label readable. Captions in the last shot are moved above
+   the card, the label readable. Captions in the QR shot are moved above
    the card and can land on the end card's own words; if the timeline
-   warned about them, set `"hideCaptions": true` on the last shot (or
-   ask the user to drop its spoken line) and run the timeline again. A
-   short's own end scene that does not move out of the way needs
-   `useQrReserve` from `@engine/overlay/qrReserve` and `FitAboveQr` from
-   `@engine/overlay/FitAboveQr` (see the reference above).
+   warned about them, set `"hideCaptions": true` on that shot (or ask the
+   user to drop its spoken line) and run the timeline again. A short's
+   own end scene that does not move out of the way needs `useQrReserve`
+   from `@engine/overlay/qrReserve` and `FitAboveQr` from
+   `@engine/overlay/FitAboveQr` (see the reference above). When the QR
+   shot is not the last, also look at a still a little after `qr.endSec`:
+   the card must be gone and the captions back in their usual place.
 6. **Render.** `npm run render`, with no extra arguments. It stops first
    if the timeline no longer matches the settings (run step 4 again).
    Then it requests the QR's URL once and goes on only if it answers 302
