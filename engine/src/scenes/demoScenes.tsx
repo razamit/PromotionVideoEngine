@@ -8,6 +8,8 @@ import { CaptureCard, type CardEntrance } from "../phone/CaptureCard";
 import type { CaptureCrop, CaptureFocus } from "../phone/captureGeometry";
 import { Plate } from "../camera/layers";
 import { SAFE_ZONE } from "../layout/safeZone";
+import { FitAboveQr } from "../overlay/FitAboveQr";
+import { useQrReserve, type QrReserve } from "../overlay/qrReserve";
 import { Room3D } from "../world/Room3D";
 import { Desk, Door, Shelf, TrashBag } from "../world/props3d";
 import { Actor, Burst, Sign, TapRing } from "./kit";
@@ -102,14 +104,44 @@ export function CardReveal({ src, crop, videoStart = 0, colors = "red", entrance
   );
 }
 
+const END_ICON_STYLE: React.CSSProperties = { width: 300, height: 300, borderRadius: 66, border: "9px solid #141414" };
+const endNameStyle: React.CSSProperties = { fontFamily, fontWeight: 900, fontSize: 120, color: "#fff", WebkitTextStroke: "18px #000", paintOrder: "stroke fill" };
+const endLineStyle: React.CSSProperties = { fontFamily, fontWeight: 800, fontSize: 64, color: "#fff", WebkitTextStroke: "12px #000", paintOrder: "stroke fill" };
+
+/** EndCard's column when the short has a QR: above the card, wrapped to the safe width and smaller if it is too tall (FitAboveQr). */
+function EndCardAboveQr({ name, line, reserve }: { name: string; line: string; reserve: QrReserve }) {
+  return (
+    <FitAboveQr reserve={reserve} name="EndCard">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 36 }}>
+        <Img src={staticFile("brand/icon.png")} style={END_ICON_STYLE} />
+        <div style={{ ...endNameStyle, lineHeight: 1.2 }}>{name}</div>
+        <div style={{ ...endLineStyle, lineHeight: 1.2 }}>{line}</div>
+      </div>
+    </FitAboveQr>
+  );
+}
+
+/** The last shot of every bean short. With a QR (useQrReserve) the words move above the card and the bean steps down to the corner. */
 export function EndCard({ name = "Sticky Tasks", line = "Link in bio" }: { name?: string; line?: string }) {
+  const reserve = useQrReserve();
+  if (reserve) {
+    return (
+      <AbsoluteFill>
+        <Burst a={brand.accent} b={brand.accentBright} />
+        <EndCardAboveQr name={name} line={line} reserve={reserve} />
+        <Actor x={0.86} y={1.1}>
+          <Bean height={560} shirt={palette.shirts[1]} hair="bowl" face={{ eyes: "happy", mouth: "grin" }} pose={{ armR: 150, armL: 20 }} />
+        </Actor>
+      </AbsoluteFill>
+    );
+  }
   return (
     <AbsoluteFill>
       <Burst a={brand.accent} b={brand.accentBright} />
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", gap: 36, paddingBottom: 380 }}>
-        <Img src={staticFile("brand/icon.png")} style={{ width: 300, height: 300, borderRadius: 66, border: "9px solid #141414" }} />
-        <div style={{ fontFamily, fontWeight: 900, fontSize: 120, color: "#fff", WebkitTextStroke: "18px #000", paintOrder: "stroke fill" }}>{name}</div>
-        <div style={{ fontFamily, fontWeight: 800, fontSize: 64, color: "#fff", WebkitTextStroke: "12px #000", paintOrder: "stroke fill" }}>{line}</div>
+        <Img src={staticFile("brand/icon.png")} style={END_ICON_STYLE} />
+        <div style={endNameStyle}>{name}</div>
+        <div style={endLineStyle}>{line}</div>
       </AbsoluteFill>
       <Actor x={0.8} y={0.98}>
         <Bean height={620} shirt={palette.shirts[1]} hair="bowl" face={{ eyes: "happy", mouth: "grin" }} pose={{ armR: 150, armL: 20 }} />

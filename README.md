@@ -48,7 +48,9 @@ It's a [Claude Code](https://claude.com/claude-code) plugin with two parts:
   sound-effect mixing, lint and review sheets, and loudness finishing.
 - **The skill** (`skills/cartoon-shorts/`): walks Claude through a whole
   episode: three story pitches, the script and shot list, timing, captures,
-  scenes, self-review, render and the post text for each platform.
+  scenes, self-review, render and the post text for each platform. A
+  second, small skill (`skills/qr-end-card/`) adds a QR code to the end of
+  a finished short.
 
 It was built to make the shorts for Sticky Tasks, a reminder app (search
 "Sticky Tasks Repeat Reminders" on the App Store or Google Play). About 20
@@ -94,7 +96,7 @@ python3.12 -m venv ~/.cache/cartoon-shorts/venv-audio
 
 Everything runs on your machine: script, voice, alignment, music, render.
 The plugin sends no data about you or your app anywhere, and has no server
-of its own. It only downloads:
+of its own. It downloads:
 
 - the engine's npm packages (`npm ci`, from the npm registry),
 - the caption fonts (Inter, Playfair Display, Anton, and TikTok Sans for
@@ -102,6 +104,20 @@ of its own. It only downloads:
   `@remotion/google-fonts`,
 - the voice and alignment models from Hugging Face, the first time
   mlx-audio loads them.
+
+It makes one request of its own, and only for a short with a QR end card
+(below). Three commands make it: `npm run render`, a full-size
+`npm run remotion -- render` to a video file, and `npm run qr`. Each asks
+the QR's own URL once whether it redirects: one GET, redirects not
+followed, a 10 s timeout. The request carries no body, no cookies and
+nothing about you, the app or the short beyond the URL itself. Its headers
+are a fixed User-Agent, `cartoon-shorts-qr-check` (no version, project or
+name, so the site owner can leave these checks out of the scan counts),
+and the ones Node's `fetch` adds to every request (`accept: */*`,
+`accept-language: *`, `accept-encoding: gzip, deflate`,
+`sec-fetch-mode: cors`, plus `host` and `connection`). Studio, stills,
+`review`, `bubbles` and partial or scaled renders never make it. Nothing
+else is sent anywhere.
 
 The one exception is a TTS tool you choose and configure yourself as the
 `command` voice engine (for example a paid API). That tool receives the
@@ -142,6 +158,48 @@ drawn, the screen never is), every claim is true, the story comes first and
 the app is the payoff, nothing sits still for more than about 2 s, and the
 captions carry the story with the sound off.
 
+### QR end card
+
+A short can end on a QR code that opens your app's page through a redirect
+on your own site, one code per short, so scans can be counted per video.
+Turn it on for a project in `.cartoon-shorts/product-brief.md`:
+
+```yaml
+qr:
+  baseUrl: https://example.com/st/     # https, ends with "/"; each short's code is appended
+  label: Scan to get the app           # optional, up to 20 characters
+  socialLine: Scan the code at the end or search Your App
+  minSeconds: 2.5                      # optional, 2.5 to 10
+```
+
+- Every short in that project gets the QR on its last shot. `"qr": false`
+  in a short's `script.json` turns it off for that short.
+- `"qrCode": "bin"` in `script.json` sets the code (a-z, 0-9 and dashes,
+  up to 20 characters). Without it, `npm run timeline` makes one from the
+  folder name and saves it into `script.json`. The timeline warns when
+  another short in the same folder already uses the code.
+- The code must be fully visible for at least `minSeconds`. If the last
+  shot is shorter, the short is held on its last frame for the missing
+  time.
+- Only `npm run render` draws the real code. Studio, stills, `review` and
+  `bubbles` show a grey "QR preview" panel of the same size in its place.
+- `render` and `finish` stop when the timeline no longer matches the QR
+  settings. `render` then checks that the QR's URL answers with a 302
+  redirect that has a `Location`, and renders nothing if it does not.
+  `render` and `finish` read the QR back from the video and fail if it
+  does not match the URL.
+- Captions in the last shot move above the card, where they can land on
+  the end card's own words. Give that shot no spoken line, or set
+  `"hideCaptions": true` on it.
+- `npm run qr` runs every check again (the redirect, the QR in
+  `out/short_final.mp4`, and that `social_text.md` exists and has the URL
+  and the `socialLine`). An older short without that script:
+  `node ~/.cache/cartoon-shorts/engine/bin/short.mjs qr`.
+- A `baseUrl` on `localhost` or `127.0.0.1` is only for testing, and every
+  step prints a do-not-post warning for it.
+- The `qr-end-card` skill adds or changes the QR on an existing short.
+  Details: `skills/cartoon-shorts/references/qr-end-card.md`.
+
 ## Layout
 
 ```
@@ -149,7 +207,7 @@ captions carry the story with the sound off.
 engine/                     the Remotion project (installed to ~/.cache/cartoon-shorts/engine)
   bin/short.mjs             what each short's npm scripts call
   src/                      characters, world, camera, phone, captions, scenes, toy (the 3D style)
-  scripts/                  timeline, TTS, alignment, music, lint, review, finish
+  scripts/                  timeline, TTS, alignment, music, lint, review, finish, qr/ (QR end card)
   public/sfx/               generated sound-effect kit
   voice/                    the narrator reference clip (a designed voice)
   example/                  the starter short new_short.sh copies
@@ -159,6 +217,8 @@ skills/cartoon-shorts/
   references/               format recipe, script rules, engine guide, audio, review, publishing
   examples/                 a full worked script, its review table, a filled-in app-series.md
   scripts/                  ensure_engine.sh, init_project.sh, new_short.sh, clip_normalise.sh, app_text_frames.py
+skills/qr-end-card/
+  SKILL.md                  add or change the QR code on an existing short
 ```
 
 The references sometimes cite episodes of the original Sticky Tasks series

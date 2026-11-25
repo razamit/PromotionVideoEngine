@@ -22,6 +22,7 @@ import { lengthBudget } from "./length_budget.mjs";
 import { SHORT, TIMELINE_FILE } from "./paths.mjs";
 import { durationOf, renderLineAudio, run } from "./voice_engines.mjs";
 import { alignLines, timeLineWords } from "./word_timing.mjs";
+import { addQrToTimeline, lastShotCaptionWarning, qrPlanOrExit } from "./qr/qr_timeline.mjs";
 
 const VO_DIR = join(SHORT, "public", "vo");
 const CACHE_DIR = join(SHORT, ".cache", "vo");
@@ -96,11 +97,12 @@ function layoutLines(script, measured) {
   return { words, lines, shots, files, gaps, spoken: cursor, alignedCount };
 }
 
-function report(script, budget, words, shots, totalSeconds) {
+/** `paceSeconds` leaves out a QR hold (frames added so the code can be scanned), so the hold never changes the wpm. */
+function report(script, budget, words, shots, { totalSeconds, paceSeconds }) {
   const body = shots.slice(0, -1).filter((s) => !s.hideCaptions); // end card holds on purpose
   const longest = Math.max(0, ...body.map((s) => s.end - s.start));
   console.log(`${script.lines.length} lines, ${words.length} words, ${shots.length} shots`);
-  console.log(`length ${totalSeconds.toFixed(1)}s, ${((words.length / totalSeconds) * 60).toFixed(0)} wpm, longest shot ${longest.toFixed(2)}s`);
+  console.log(`length ${totalSeconds.toFixed(1)}s, ${((words.length / paceSeconds) * 60).toFixed(0)} wpm, longest shot ${longest.toFixed(2)}s`);
   const maxShot = script.style === "toy" ? 2.6 : 2.2;
   if (longest > maxShot) console.log(`WARNING: a shot runs past ${maxShot}s; split it or give it a stronger camera move`);
   reportLength(budget, words.length, totalSeconds);
@@ -138,44 +140,56 @@ function reportLength(budget, wordCount, totalSeconds) {
   }
 }
 
-function main() {
+/** generated/timeline.json's content; `qr` and a held music bed come from addQrToTimeline. */
+function timelineObject(script, fps, laidOut, qrPart, voFile) {
+  const { words, lines, shots, alignedCount, lineCount } = laidOut;
+  return {
+    title: script.title,
+    style: script.style ?? "bean",
+    fps,
+    durationInFrames: qrPart.durationInFrames,
+    voFile,
+    music: qrPart.music,
+    autoSfx: script.autoSfx ?? true,
+    captions: script.captions ?? (script.style === "toy" ? { style: "serif" } : undefined),
+    wordTiming: alignedCount === 0 ? "estimated" : alignedCount === lineCount ? "aligned" : "mixed",
+    words,
+    lines,
+    shots,
+    ...(qrPart.qr ? { qr: qrPart.qr } : {}),
+  };
+}
+
+async function main() {
   const scriptPath = resolve(SHORT, process.argv[2] ?? "script.json");
   const script = JSON.parse(readFileSync(scriptPath, "utf8"));
   const voice = script.voice ?? { engine: "none" };
   const fps = script.fps ?? 30;
   const budget = lengthBudgetOrExit(script);
+  const qrPlan = await qrPlanOrExit(SHORT, script, scriptPath); // scripts/qr/: brief qr block, script.json qr / qrCode
   mkdirSync(VO_DIR, { recursive: true });
   mkdirSync(dirname(OUT_JSON), { recursive: true });
 
   const measured = measureLines(script, voice, dirname(scriptPath));
-  const { words, lines, shots, files, gaps, spoken, alignedCount } = layoutLines(script, measured);
+  const laidOut = { ...layoutLines(script, measured), lineCount: measured.length };
+  const { words, shots, files, gaps, spoken, alignedCount } = laidOut;
   const tail = script.tailSeconds ?? 1.2;
   shots[shots.length - 1].end += tail;
-  const totalSeconds = spoken + tail;
+  const qrPart = addQrToTimeline(qrPlan, { shots, fps, durationInFrames: Math.ceil((spoken + tail) * fps), music: script.music ?? null });
+  const totalSeconds = qrPart.qr ? qrPart.durationInFrames / fps : spoken + tail;
 
   let voFile = null;
   if (files.length > 0) {
     concatenate(files, gaps, join(SHORT, "public", "vo.wav"));
     voFile = "vo.wav";
   }
-  const timeline = {
-    title: script.title,
-    style: script.style ?? "bean",
-    fps,
-    durationInFrames: Math.ceil(totalSeconds * fps),
-    voFile,
-    music: script.music ?? null,
-    autoSfx: script.autoSfx ?? true,
-    captions: script.captions ?? (script.style === "toy" ? { style: "serif" } : undefined),
-    wordTiming: alignedCount === 0 ? "estimated" : alignedCount === measured.length ? "aligned" : "mixed",
-    words,
-    lines,
-    shots,
-  };
+  const timeline = timelineObject(script, fps, laidOut, qrPart, voFile);
   writeFileSync(OUT_JSON, JSON.stringify(timeline, null, 2));
-  report(script, budget, words, shots, totalSeconds);
+  report(script, budget, words, shots, { totalSeconds, paceSeconds: spoken + tail });
   warnSlowToyVoice(script, voice);
+  const captionWarning = lastShotCaptionWarning(timeline);
+  if (captionWarning) console.log(captionWarning);
   if (files.length > 0) console.log(`word times: ${alignedCount} of ${measured.length} lines force-aligned`);
 }
 
-main();
+await main();

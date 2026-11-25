@@ -57,6 +57,16 @@ hashtags:
 
 test:
   viewsToRepeat: 15000          # a format that passes this is worth repeating
+
+# A QR code on the last shot of every cartoon short (optional). Slideshows
+# draw no QR, but slideshow lint still checks this block. It points at
+# baseUrl + the short's code, so the address must answer with a 302
+# redirect (with a Location) before a short can be rendered.
+# qr:
+#   baseUrl: https://example.com/st/   # https, ends with "/"; the short's code is appended
+#   label: Scan to get the app         # optional, one line under the code, up to 20 characters (this is the default)
+#   socialLine: Scan the code at the end or search Your Product   # goes in every caption
+#   minSeconds: 2.5                    # optional, 2.5 to 10
 ---
 
 # Notes for the writer

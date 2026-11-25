@@ -292,7 +292,9 @@ function applyLengthBudget(script) {
 
 function checkLengthAndPace(timeline, budget) {
   const seconds = timeline.durationInFrames / timeline.fps;
-  const wpm = (timeline.words.length / seconds) * 60;
+  // A QR hold (frames added so the code can be scanned) counts toward the length, not the pace.
+  const paceSeconds = (timeline.durationInFrames - (timeline.qr?.holdFrames ?? 0)) / timeline.fps;
+  const wpm = (timeline.words.length / paceSeconds) * 60;
   if (seconds < budget.minSeconds || seconds > budget.maxSeconds) {
     add("warn", "length", "whole short", `${seconds.toFixed(1)}s, outside ${budget.minSeconds}-${budget.maxSeconds}s`,
       `cut or add lines; ${budget.aim} is the target, about ${budget.minWords}-${budget.maxWords} words${budget.requested ? ' (script.json "targetSeconds")' : ""}`);

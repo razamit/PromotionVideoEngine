@@ -58,6 +58,7 @@ the step needs:
 | `references/music-and-sfx.md` | The house sound-effects kit, auto cues, composing a bed per episode, rights |
 | `references/self-review.md` | The checklist run on the review sheets before hand-over |
 | `references/publishing.md` | Final checks, platform disclosure toggles, the `social_text.md` post text per platform |
+| `references/qr-end-card.md` | The QR end card: the brief's `qr` block, the hold, keeping an end scene clear of the card, the redirect and decode checks |
 | `references/intake-questions.md` | The questions to ask before making anything, for shorts and slideshows, and how a batch is planned |
 | `references/slideshow-mode.md` | Slideshow mode: TikTok photo posts for any product, from a product brief. For a slideshow, read it and `intake-questions.md`; none of the references above are needed |
 | `references/slideshow-formats.md` | The six slideshow formats and when to use each |
@@ -244,6 +245,7 @@ npm run review                                         # 0.4-scale preview, cont
 npm run bubbles                                        # every speech burst and sign on a sheet, warns on cut words (out/bubblecheck/)
 npm run still -- out/check.png --frame=<n>             # full-size look at one frame
 npm run render && npm run finish                       # out/short_final.mp4, -14 LUFS, -2 dBTP; fails above -1 dBTP
+npm run qr                                             # QR shorts only: redirect, decode and social text checks
 npm run frames                                         # frames/: a handful of caption-free scene frames, kept for slideshows
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" .          # out/textcheck/: one frame per app shot, with the element it must show whole
 python3 "${CLAUDE_SKILL_DIR}/scripts/app_text_frames.py" --check .  # exit 1 until index.md says Readable? yes and Whole? yes on every row
@@ -258,6 +260,24 @@ captions clear of platform UI, no framing 3 times, characters moving.
 Fix, re-run `npm run review`, repeat. Then check `references/publishing.md`.
 A 55 s short renders in about a minute on an Apple Silicon Mac.
 
+**QR end card.** When the project's product brief has a `qr` block, the
+timeline adds a QR card over the last shot (on by default; `"qr": false` in
+script.json turns it off, `"qrCode"` sets the code, else it is made from the
+folder name and saved into script.json). Stills, Studio, `review` and
+`bubbles` show a "QR preview" panel where the code goes; only
+`npm run render` draws the real one. Look at a still of the last shot: no
+words or logo under or touching the card. The last shot should have no
+spoken line, or `"hideCaptions": true`, since its captions move above the
+card onto the end card's own words (the timeline warns). A custom end
+scene uses `useQrReserve` and `FitAboveQr` (references/qr-end-card.md).
+`render` and `finish` stop when the timeline is out of date with the QR
+settings. `npm run render` then checks that the QR's URL answers 302 and
+stops with "the QR redirect route is not live yet" when it does not. If it
+stops, tell the user the route is not live yet and stop there; never work
+around it (there is no switch to skip it). `render` and `finish` decode
+the QR from the file and fail if it does not read back as the URL. The
+`qr-end-card` skill adds or changes the QR on a finished short.
+
 ### 7. Hand over
 
 Run `npm run frames` once the render is final: it saves a handful of
@@ -268,7 +288,17 @@ package.json has no `frames` script runs it as
 `node "$(bash "${CLAUDE_SKILL_DIR}/scripts/ensure_engine.sh" --where)/bin/short.mjs" frames`.
 
 Write `social_text.md` in the short's folder first (publishing.md, "Links
-and copy"): every final render ships with one, no exceptions. Then report
+and copy"): every final render ships with one, no exceptions. For a short
+with a QR it also carries a line with the code and the full URL, the
+brief's `qr.socialLine` inside each platform's caption or description, and
+under the TikTok part two notes: turn on the content disclosure setting
+("Your brand"), because TikTok treats a QR code as a sign of commercial
+content, and do not boost the video with Promote or Spark Ads, because
+TikTok's ad rules ban QR codes (publishing.md, "QR code shorts"). Then run
+`npm run qr`, which fails while `social_text.md` is missing or lacks the
+URL or the social line; an older short without the script runs
+`node "$(bash "${CLAUDE_SKILL_DIR}/scripts/ensure_engine.sh" --where)/bin/short.mjs" qr`.
+Then report
 the absolute path of `out/short_final.mp4` and of `social_text.md`, the
 strip, the script table, and the open items
 (captures still on draft assets), which roster voice and which music

@@ -36,12 +36,14 @@ export function safeBox(width = FRAME.width, height = FRAME.height) {
 
 /**
  * Clamps a vertical centre (fraction of the frame) so a block of
- * `blockHeight` px stays inside the safe zone.
+ * `blockHeight` px stays inside the safe zone, and above `bottomPx` when
+ * that is given (captions over a QR card keep above its reserve).
  */
-export function clampCentreY(y: number, blockHeight: number, height = FRAME.height) {
+export function clampCentreY(y: number, blockHeight: number, height = FRAME.height, bottomPx?: number) {
   const box = safeBox(FRAME.width, height);
+  const bottom = bottomPx === undefined ? box.bottom : Math.min(box.bottom, bottomPx);
   const half = blockHeight / 2;
   const min = (box.top + half) / height;
-  const max = (box.bottom - half) / height;
+  const max = (bottom - half) / height;
   return Math.min(max, Math.max(min, y));
 }

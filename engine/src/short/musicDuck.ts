@@ -47,7 +47,8 @@ function edgeFade(t: number, total: number, fadeIn: number, fadeOut: number): nu
 export function musicGainPerFrame(music: MusicSpec, words: TimedWord[], fps: number, frames: number): number[] {
   const spans = speechSpans(words);
   const duckDb = music.duckDb ?? DEFAULT_DUCK_DB;
-  const total = frames / fps;
+  // A bed that ends before the short (only set when a QR hold made it longer) fades out at its own end.
+  const total = Math.min(frames / fps, music.fileSeconds ?? Infinity);
   const gains: number[] = [];
   for (let frame = 0; frame < frames; frame++) {
     const t = frame / fps;

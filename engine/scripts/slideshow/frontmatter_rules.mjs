@@ -52,9 +52,10 @@ export const BRIEF_RULES = [
   { path: "style.text", type: "text" },
   { path: "style.outline", type: "text" },
   { path: "test.viewsToRepeat", type: "number" },
+  // qr: its own rules (scripts/qr/qr_brief_rules.mjs), applied by lint_deck.mjs.
 ];
 
-export const BRIEF_SECTIONS = ["product", "claims", "cta", "copyRules", "screenshots", "shorts", "cast", "hashtags", "output", "style", "test"];
+export const BRIEF_SECTIONS = ["product", "claims", "cta", "copyRules", "screenshots", "shorts", "cast", "hashtags", "output", "style", "test", "qr"];
 
 export const DECK_RULES = [
   { path: "format", type: "text", required: true },

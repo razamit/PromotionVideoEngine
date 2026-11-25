@@ -56,6 +56,15 @@ hashtags:
 
 test:
   viewsToRepeat: 15000
+
+# The QR end card on every cartoon short (slideshows draw no QR, but their
+# lint checks this block). Each short's code is appended to baseUrl; the
+# route must answer 302 before a render.
+qr:
+  baseUrl: https://rzailabs.com/st/
+  label: Scan to get the app
+  socialLine: Scan the code at the end or search Sticky Tasks Repeat Reminders
+  minSeconds: 2.5
 ---
 
 # Notes for the writer

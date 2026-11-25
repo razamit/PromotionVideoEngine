@@ -57,6 +57,12 @@ export type MusicSpec = {
   /** Seconds of fade at the start and the end, defaults 0.3 and 1.0. */
   fadeIn?: number;
   fadeOut?: number;
+  /**
+   * Written by build_timeline, not by hand: the file's length in seconds when
+   * a QR hold made the short longer than a non-looping bed. The fade-out
+   * then ends where the file ends instead of the bed stopping dead.
+   */
+  fileSeconds?: number;
 };
 
 export type ShotSpec = {
@@ -146,6 +152,33 @@ export type CaptionSpec = {
   titleY?: number;
 };
 
+/**
+ * The QR end card (scripts/qr/, src/overlay/QrCard.tsx). Written by
+ * build_timeline when the project brief has a qr block and script.json does
+ * not set "qr": false. The renderer only paints `modules`; it has no QR library.
+ * It paints them only in a render `npm run render` verified (overlay/qrVerification.ts);
+ * otherwise it draws a placeholder panel in their place.
+ */
+export type QrSpec = {
+  /** The short code appended to the brief's qr.baseUrl. */
+  code: string;
+  /** What the symbol encodes. */
+  url: string;
+  /** The line under the symbol. */
+  label: string;
+  /** QR version (symbol size), for reports. */
+  version: number;
+  /** The symbol at error correction M, one string per row, "1" black and "0" white, no quiet zone. */
+  modules: string[];
+  /** The card is on screen from startSec to endSec: the whole last shot. */
+  startSec: number;
+  endSec: number;
+  /** Frames the card takes to come in; the hold counts only the frames after them. */
+  enterFrames: number;
+  /** Frames added at the end that repeat the last shot's last frame; 0 when the shot was long enough. */
+  holdFrames: number;
+};
+
 export type Timeline = {
   title: string;
   /** Default "bean". */
@@ -163,6 +196,8 @@ export type Timeline = {
   /** One entry per script line; older timelines have none. */
   lines?: TimedLine[];
   shots: TimedShot[];
+  /** The QR end card, when this short has one. */
+  qr?: QrSpec;
 };
 
 /**

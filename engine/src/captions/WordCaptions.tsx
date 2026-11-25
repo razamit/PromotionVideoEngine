@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Inter";
 import type { CaptionSpec, TimedShot, TimedWord } from "../timeline/types";
+import { keepAboveAt, type CaptionKeepAbove } from "./keepAbove";
 import { palette } from "../theme/palette";
 import { clampCentreY, safeBox } from "../layout/safeZone";
 
@@ -13,7 +14,8 @@ import { clampCentreY, safeBox } from "../layout/safeZone";
 // - "pop": bigger, a pop and small tilt per group, emphasis words in yellow.
 // The centre is clamped into the platform safe zone (src/layout/safeZone.ts),
 // so a shot's captionY can never push them under TikTok's / Shorts' / Reels'
-// own description and buttons.
+// own description and buttons. In a short with a QR end card they also
+// keep above the card while it is up (keepAbove.ts).
 
 const { fontFamily } = loadFont("normal", { weights: ["900"], subsets: ["latin"] });
 
@@ -91,7 +93,7 @@ function popTransform(index: number, local: number, fps: number) {
   return `translateY(${(1 - pop) * 40}px) rotate(${tilt}deg) scale(${0.6 + 0.4 * pop})`;
 }
 
-export function WordCaptions({ words, shots, spec }: { words: TimedWord[]; shots: TimedShot[]; spec?: CaptionSpec }) {
+export function WordCaptions({ words, shots, spec, keepAbove }: { words: TimedWord[]; shots: TimedShot[]; spec?: CaptionSpec; keepAbove?: CaptionKeepAbove }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const groups = useMemo(() => groupWords(words), [words]);
@@ -106,7 +108,7 @@ export function WordCaptions({ words, shots, spec }: { words: TimedWord[]; shots
   const box = safeBox(width, height);
   const maxWidth = box.right - box.left;
   const fontSize = fitFontSize(group.text, size * (isPop && group.emphasis ? 1.06 : 1), maxWidth);
-  const top = clampCentreY(shot?.captionY ?? spec?.y ?? 0.705, fontSize * 1.3, height);
+  const top = clampCentreY(shot?.captionY ?? spec?.y ?? 0.705, fontSize * 1.3, height, keepAboveAt(keepAbove, t));
   const motion = isPop ? ` ${popTransform(index, frame - Math.round(group.start * fps), fps)}` : "";
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>

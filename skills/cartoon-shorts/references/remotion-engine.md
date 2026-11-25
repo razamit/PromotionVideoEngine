@@ -24,7 +24,7 @@ package.json                 every npm script calls ~/.cache/cartoon-shorts/engi
 script.json                  VO lines with shots (you write this)
 scenes/registry.ts           scene key -> component for this short
 scenes/<folder>/*.tsx        this short's scenes; engine imports as "@engine/..."
-generated/timeline.json      written by npm run timeline
+generated/timeline.json      written by npm run timeline (with a `qr` block when the short has a QR end card)
 public/app/                  this short's captures
 public/vo/, public/vo.wav    voice-over (npm run timeline)
 public/music/bed.wav         music bed (npm run music; takes/ is gitignored)
@@ -60,6 +60,9 @@ src/camera/moves.ts          the moves (push, crash, crashOut, snapZoom, pans...
 src/camera/layers.tsx        parallax: DepthLayer, Plate, Foreground, useCameraState, plateCatchUp
 src/captions/WordCaptions.tsx one or two words at a time, pop and tilt, emphasis colour, clamped into the safe zone
 src/layout/safeZone.ts       where TikTok / Shorts / Reels draw their UI (SAFE_ZONE, safeBox, clampCentreY)
+src/layout/qrGeometry.ts     where the QR end card sits and how big its modules are, from the module count
+src/overlay/QrCard.tsx       the QR end card, drawn over the last shot outside the camera (useQrReserve, FitAboveQr, qrTextAudit)
+scripts/qr/                  the QR settings, matrix, hold, redirect check, decode check and `npm run qr`
 src/characters/Bean.tsx      the house character (Face.tsx, Hair.tsx)
 src/world/Room3D.tsx         three-walled toon room; its camera dollies with the shot's move (real parallax)
 src/world/ToonBox.tsx        toon material ramp + inverted-hull outline
@@ -334,12 +337,18 @@ npm run table           # out/review.md for approval
 npm run studio          # live preview in the browser (Remotion Studio)
 npm run typecheck
 npm run still -- out/f.png --frame=120
-npm run render          # out/short.mp4
-npm run finish          # out/short_final.mp4 (loudness, faststart)
+npm run render          # out/short.mp4 (a QR short: redirect check first, decode check after)
+npm run finish          # out/short_final.mp4 (loudness, faststart; a QR short: decode check after)
+npm run qr              # a QR short: settings, redirect, decode of out/short_final.mp4 (or a file), social_text.md
 ```
 
 The 6.7 s smoke test rendered in 7 s on this Mac, so a 60 s short should
 take a minute or two.
+
+**QR end card** (the brief's `qr` block; script.json `qr`, `qrCode`): only
+`npm run render` draws the real code, every preview shows a "QR preview"
+panel. A custom end scene uses `useQrReserve` (`@engine/overlay/qrReserve`)
+and `FitAboveQr` (`@engine/overlay/FitAboveQr`). Details: `qr-end-card.md`.
 
 ## Traps found while building the engine
 

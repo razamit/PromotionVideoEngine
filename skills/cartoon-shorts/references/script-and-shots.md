@@ -133,6 +133,20 @@ Fields:
   for the style's default ("Other lengths" above; toy-style.md, "Other
   lengths").
 - `lines[].caption`: serif captions only: `title`, `line` or `none`.
+- `qr`: `false` turns the QR end card off for this short. It is on by
+  default whenever the project's product brief has a `qr` block with a
+  `baseUrl`; `true` only makes a missing block an error.
+- `qrCode`: the code the QR's URL ends in (`<qr.baseUrl><qrCode>`),
+  1 to 20 characters of `a-z`, `0-9` and `-`. Leave it out and
+  `npm run timeline` makes one from the folder name and saves it as the
+  first key of script.json (qr-end-card.md). Each short needs its own;
+  the timeline warns when another short in the folder has the same one.
+
+With a QR, the last shot carries the card. Its captions move above the
+card, which puts them on the end card's own words, so give the last shot
+no spoken line or set `"hideCaptions": true` on it. A last shot shorter
+than the brief's `qr.minSeconds` (2.5 s by default) is held on its last
+frame. Lint counts that hold in the short's length but not in its pace.
 
 ## Review table (what the channel owner sees before anything is built)
 

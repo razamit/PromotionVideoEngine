@@ -1,0 +1,4 @@
+{
+  "description": "Marks the .ts files in this folder as ES modules for Node, which imports qrGeometry.ts and safeZone.ts directly from scripts/qr/. The bundler and tsc ignore this.",
+  "type": "module"
+}

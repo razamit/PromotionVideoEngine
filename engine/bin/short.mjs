@@ -6,14 +6,23 @@
 //   node engine/bin/short.mjs <command> [args...]   (from inside a short)
 //
 // Commands: timeline, table, music, lint, typecheck, check, studio, still,
-// render, finish, review, bubbles, frames, and remotion (pass-through to the Remotion
+// render, finish, review, bubbles, frames, qr, and remotion (pass-through to the Remotion
 // CLI with the short wired in: `npm run remotion -- still Short out/f.png --frame=90`).
+// A short whose timeline has a QR end card (scripts/qr/qr_render_flow.mjs):
+// `render` (and a full-size `remotion render` to a video file) checks the
+// timeline against the QR settings and that the QR's URL answers 302, and
+// only then lets the renderer draw the real code; `render` and `finish`
+// decode the QR from the file afterwards. Everything else (studio, still,
+// review, bubbles, partial or scaled renders) draws a placeholder and makes
+// no request. `qr` runs every QR check again.
 
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
+import { isFlagValue } from "../scripts/remotion_args.mjs";
+import { describeEnvFileRefusal, envFilesSettingQrVerified } from "../scripts/qr/qr_env_file_guard.mjs";
 
 const ENGINE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SHORT = resolve(process.env.SHORT_DIR ?? process.cwd());
@@ -23,9 +32,11 @@ const ENTRY = join(ENGINE, "src", "index.ts");
 // so per-short files in the engine are keyed on name plus a hash of the path.
 const SHORT_KEY = `${basename(SHORT)}-${createHash("sha1").update(SHORT).digest("hex").slice(0, 8)}`;
 const env = { ...process.env, SHORT_DIR: SHORT, ENGINE_DIR: ENGINE, SHORT_KEY };
+// Only the QR gate may hand the renderer a verified QR (src/overlay/qrVerification.ts); one left in a shell must not leak in.
+delete env.REMOTION_QR_VERIFIED;
 
-function run(cmd, args, cwd = SHORT) {
-  const result = spawnSync(cmd, args, { cwd, env, stdio: "inherit" });
+function run(cmd, args, cwd = SHORT, extraEnv = {}) {
+  const result = spawnSync(cmd, args, { cwd, env: { ...env, ...extraEnv }, stdio: "inherit" });
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
@@ -90,17 +101,48 @@ function shortTsconfig() {
   return file;
 }
 
+/** An env file that sets the QR gate's variable would win over the gate (scripts/qr/qr_env_file_guard.mjs): stop first. */
+function refuseUnsafeEnvFiles(remotionArgs) {
+  const unsafeEnvFiles = envFilesSettingQrVerified(ENGINE, remotionArgs);
+  if (!unsafeEnvFiles.length) return;
+  console.error(describeEnvFileRefusal(unsafeEnvFiles));
+  process.exit(1);
+}
+
 /** Remotion CLI with the short wired in. Output paths are taken relative to the short. */
-function remotion(args) {
+function remotion(args, extraEnv = {}) {
   const [command, ...rest] = args;
+  refuseUnsafeEnvFiles(rest);
   const outputs = command === "render" || command === "still";
   const fixed = rest.map((arg, i) => {
     if (!outputs || arg.startsWith("-") || arg === "Short") return arg;
-    const previous = rest[i - 1] ?? "";
-    if (previous.startsWith("--") && !previous.includes("=")) return arg; // value of a flag like --frames 1-9
+    if (isFlagValue(rest, i)) return arg; // value of a flag like --frames 1-9
     return isAbsolute(arg) ? arg : resolve(SHORT, arg);
   });
-  run(REMOTION, [command, ENTRY, ...fixed, `--public-dir=${mergedPublicDir()}`], ENGINE);
+  run(REMOTION, [command, ENTRY, ...fixed, `--public-dir=${mergedPublicDir()}`], ENGINE, extraEnv);
+}
+
+// The QR modules load only on the commands that need them, so a QR library
+// missing from an engine that was not reinstalled cannot break the others.
+const qrRenderFlow = () => import("../scripts/qr/qr_render_flow.mjs");
+
+/** render (or the pass-through `remotion render`) through the QR gate; `render` checks the timeline even for previews. */
+async function gatedRender(remotionArgs, alwaysCheckTimeline) {
+  refuseUnsafeEnvFiles(remotionArgs);
+  const { renderWithQrGate } = await qrRenderFlow();
+  await renderWithQrGate({ shortDir: SHORT, remotionArgs, renderWith: remotion, alwaysCheckTimeline });
+}
+
+/** finish, with the QR timeline check before it and the decode check on the finished file after it. */
+async function finishShort(args) {
+  const { finishWithQrCheck } = await qrRenderFlow();
+  const files = args.length ? args : ["out/short.mp4", "out/short_final.mp4"];
+  await finishWithQrCheck({ shortDir: SHORT, files, runFinish: (finishFiles) => bash("finish.sh", finishFiles) });
+}
+
+async function qrCommand(args) {
+  const { runQrCommand } = await import("../scripts/qr/qr_command.mjs");
+  process.exit(await runQrCommand(SHORT, args[0]));
 }
 
 const node = (script, args) => run(process.execPath, [join(ENGINE, "scripts", script), ...args]);
@@ -115,13 +157,16 @@ const commands = {
   check: (a) => { commands.typecheck(a); commands.lint(a); },
   studio: (a) => remotion(["studio", ...a]),
   still: (a) => remotion(["still", "Short", ...(a.some((x) => !x.startsWith("-")) ? a : ["out/still.png", ...a])]),
-  render: (a) => remotion(["render", "Short", ...(a.some((x) => !x.startsWith("-")) ? a : ["out/short.mp4", ...a])]),
-  finish: (a) => bash("finish.sh", a.length ? a : ["out/short.mp4", "out/short_final.mp4"]),
+  render: (a) => gatedRender(["render", "Short", ...(a.some((x) => !x.startsWith("-")) ? a : ["out/short.mp4", ...a])], true),
+  finish: (a) => finishShort(a),
   review: (a) => bash("review_frames.sh", a),
   bubbles: (a) => bash("bubble_check.sh", a),
-  remotion: (a) => remotion(a),
+  // A full-size pass-through render to a video file makes a postable file too, so it goes through the same gate.
+  remotion: (a) => (a[0] === "render" ? gatedRender(a, false) : remotion(a)),
   // Caption-free frames of this short's scenes, saved in frames/ for slideshows (scripts/slideshow/scene_frames.mjs).
   frames: (a) => node(join("slideshow", "scene_frames.mjs"), [`--public-dir=${mergedPublicDir()}`, ...a]),
+  // Every QR check: settings, redirect, decode of out/short_final.mp4 (else out/short.mp4, or [file]), social_text.md.
+  qr: (a) => qrCommand(a),
 };
 
 const [command, ...args] = process.argv.slice(2);
@@ -134,4 +179,4 @@ if (!existsSync(join(SHORT, "script.json"))) {
   process.exit(2);
 }
 linkNodeModules();
-commands[command](args);
+await commands[command](args);

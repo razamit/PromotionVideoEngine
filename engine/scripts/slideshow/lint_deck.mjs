@@ -9,6 +9,7 @@ import { roleOf } from "./formats.mjs";
 import { BRIEF_RULES, BRIEF_SECTIONS, checkFrontmatter, DECK_RULES, DECK_SECTIONS } from "./frontmatter_rules.mjs";
 import { checkCartoonSlides } from "./cartoon_checks.mjs";
 import { checkSocialText } from "./social_text_checks.mjs";
+import { qrBlockProblems } from "../qr/qr_brief_rules.mjs";
 
 const LAYOUT_NAMES = ["text", "screenshot", "split", "end"];
 /** Below this, a screenshot is drawn at under half its captured size and its UI text stops being readable on a phone. */
@@ -145,6 +146,7 @@ export function lintDeck(sources, deck) {
   const { brief, deckSource, format, layout } = sources;
   const problems = [
     ...checkFrontmatter(brief, BRIEF_RULES, BRIEF_SECTIONS, "brief"),
+    ...qrBlockProblems(brief.qr, "brief"),
     ...checkFrontmatter(deckSource, DECK_RULES, DECK_SECTIONS, "slideshow.md"),
     ...checkSlideCount(deck.slides, format),
     ...checkDeckShape(deck.slides, format, deckSource),

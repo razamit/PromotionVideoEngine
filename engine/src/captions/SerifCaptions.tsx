@@ -3,6 +3,7 @@ import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remo
 import { loadFont } from "@remotion/google-fonts/PlayfairDisplay";
 import type { CaptionSpec, TimedLine, TimedShot, TimedWord } from "../timeline/types";
 import { clampCentreY, safeBox } from "../layout/safeZone";
+import { keepAboveAt, type CaptionKeepAbove } from "./keepAbove";
 
 // The caption look of the toy style: one whole line at a time in a small
 // italic serif, mid-frame, like a film subtitle. A line marked "title" (the
@@ -10,7 +11,7 @@ import { clampCentreY, safeBox } from "../layout/safeZone";
 // first frame, and the word being spoken turns the accent colour.
 // *Starred* words keep the accent once they have been said.
 // Like WordCaptions, this is drawn outside the camera and clamped into the
-// platform safe zone.
+// platform safe zone, and above a QR end card while it is up (keepAbove.ts).
 
 const { fontFamily } = loadFont("italic", { weights: ["500", "600"], subsets: ["latin"] });
 
@@ -49,7 +50,7 @@ function Words({ words, t, accent, karaoke }: { words: TimedWord[]; t: number; a
   );
 }
 
-export function SerifCaptions({ words, lines, shots, spec }: { words: TimedWord[]; lines: TimedLine[]; shots: TimedShot[]; spec?: CaptionSpec }) {
+export function SerifCaptions({ words, lines, shots, spec, keepAbove }: { words: TimedWord[]; lines: TimedLine[]; shots: TimedShot[]; spec?: CaptionSpec; keepAbove?: CaptionKeepAbove }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
@@ -61,7 +62,7 @@ export function SerifCaptions({ words, lines, shots, spec }: { words: TimedWord[
   const box = safeBox(width, height);
   const fontSize = isTitle ? spec?.titleSize ?? SERIF_DEFAULTS.titleSize : spec?.size ?? SERIF_DEFAULTS.size;
   const wantY = isTitle ? spec?.titleY ?? SERIF_DEFAULTS.titleY : shot?.captionY ?? spec?.y ?? SERIF_DEFAULTS.y;
-  const top = clampCentreY(wantY, fontSize * 2.4, height);
+  const top = clampCentreY(wantY, fontSize * 2.4, height, keepAboveAt(keepAbove, t));
   const local = frame - Math.round(shown.line.start * fps);
   const left = Math.round(shown.until * fps) - frame;
   // The very first line is the hook: it is fully there on frame 0.
